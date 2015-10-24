@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Validator;
 use Input;
 use Redirect;
+use DB;
 
 class GamesController extends Controller {
 
@@ -21,7 +22,18 @@ class GamesController extends Controller {
     }
 
     function createGame() {
-        return view('editor.partials.create')->with('active', 2);
+
+        $audience = DB::table('audience')->get();
+        $difficulty_level = DB::table('difficulty_level')->get();
+        $content_area = DB::table('content_area')->get();
+
+
+
+        return view('editor.partials.create')->with('active', 2)->with('options', array(
+            'audience' => $audience,
+            'difficulty_level' => $difficulty_level,
+            'content_area' => $content_area,
+        ));
     }
 
 

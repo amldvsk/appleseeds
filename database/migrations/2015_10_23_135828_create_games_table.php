@@ -20,6 +20,9 @@ class CreateGamesTable extends Migration
             $table->string('game_opening_statement');
             $table->text('game_desc');
             $table->string('game_ending_statement');
+            $table->integer('audience');
+            $table->integer('difficulty_level');
+            $table->integer('content_area');
             $table->timestamps();
         });
     }

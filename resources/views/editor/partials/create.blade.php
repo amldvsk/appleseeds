@@ -31,21 +31,27 @@
                   <label for="exampleInputPassword1">תחום תוכן</label>
                   <select class="form-control" name="" id="">
                     <option value="0">נא לבחור תחום תוכן</option>
-                    <option value="1">תחום 1</option>
+                    @foreach( $options['content_area'] as $area )
+                        <option value="{{ $area->id  }}">{{ $area->area  }}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="exampleInputPassword1">קהל יעד</label>
                   <select class="form-control" name="" id="">
                     <option value="0">נא לבחור קהל יעד</option>
-                    <option value="1">יעד 1</option>
+                    @foreach( $options['audience'] as $audience )
+                        <option value="{{ $audience->id  }}">{{ $audience->audience_type  }}</option>
+                    @endforeach
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="exampleInputPassword1">רמת קושי</label>
                   <select class="form-control" name="" id="">
                     <option value="0">נא לבחור רמת קושי</option>
-                    <option value="1">רמה 1</option>
+                    @foreach( $options['difficulty_level'] as $level )
+                        <option value="{{ $level->id  }}">{{ $level->level  }}</option>
+                    @endforeach
                   </select>
                 </div>
               <div class="form-group">
