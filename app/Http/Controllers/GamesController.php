@@ -15,5 +15,9 @@ class GamesController extends Controller {
         return view('editor.partials.games')->with('active', 1);
     }
 
+    function createGame() {
+        return view('editor.partials.create')->with('active', 2);
+    }
+
 
 }
