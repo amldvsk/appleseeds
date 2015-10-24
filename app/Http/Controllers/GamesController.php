@@ -40,10 +40,13 @@ class GamesController extends Controller {
     function createGameData() {
         // create the validation rules ------------------------
         $rules = array(
-            'game_name'                  => 'required',     // required
-            'game_opening_statement'     => 'required',     // required
-            'game_desc'                  => 'required',     // required
-            'game_ending_statement'       => 'required'     // required
+            'game_name'                  => 'required|min:5',     // required
+            'game_opening_statement'     => 'required|min:5',     // required
+            'game_desc'                  => 'required|min:5',     // required
+            'game_ending_statement'      => 'required|min:5',     // required
+            'audience'                   => 'required',     // required
+            'difficulty_level'           => 'required',     // required
+            'content_area'               => 'required',     // required
         );
 
 
@@ -62,7 +65,7 @@ class GamesController extends Controller {
             $messages = $validator->messages();
 
             // redirect our user back to the form with the errors from the validator
-            return Redirect::to('/editor/create')->withErrors($validator);
+            return Redirect::to('/editor/create')->withErrors($validator)->withInput(Input::all());
 
         } else {
             // validation successful ---------------------------
