@@ -8,10 +8,20 @@
             <h3 class="panel-title">יצירת משחק</h3>
         </div>
         <div class="panel-body">
-            <form>
+            <p>יצירת משחק חדש...</p>
+            <form action="{{URL::to('/editor/create')}}" method="POST">
               <div class="form-group">
-                <label for="exampleInputEmail1">שם המשחק</label>
-                <input type="text" class="form-control" id="exampleInputEmail1" placeholder="שם המשחק">
+                @if ($errors->has())
+                      <div class="alert alert-danger">
+                          @foreach ($errors->all() as $error)
+                              {{ $error }}<br>
+                          @endforeach
+                      </div>
+                  @endif
+              </div>
+              <div class="form-group">
+                <label for="game_name">שם המשחק</label>
+                <input type="text" class="form-control" id="game_name" name="game_name" placeholder="שם המשחק">
               </div>
               <div class="form-group">
                 <label for="exampleInputPassword1">טקסט פתיחה (לא חובה)</label>
@@ -47,6 +57,7 @@
                  <input type="text" class="form-control" id="exampleInputPassword1" placeholder="הודעת סיום">
                </div>
                <div class="text-right">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-success">המשך</button>
                </div>
             </form>

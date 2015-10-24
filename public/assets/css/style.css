@@ -40,12 +40,12 @@ th {
 
 .navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:focus, .navbar-inverse .navbar-nav>.active>a:hover {
     color: #fff;
-    background-color: rgba(0,0,0,.4);
+    background-color: rgba(0,0,0,.3);
 }
 
 .navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus, .navbar-inverse .navbar-nav>.open>a:hover {
     color: #fff;
-    background-color: rgba(0,0,0,.4);
+    background-color: rgba(0,0,0,.3);
 }
 
 .navbar-header {

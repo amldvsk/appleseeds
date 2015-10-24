@@ -16,6 +16,17 @@ Route::get('/', function () {
 });
 
 
+
+// ==============================================================
+// EDITOR ROUTES ================================================
+// ==============================================================
+
 Route::get('/editor', 'GamesController@index');
 Route::get('/editor/games', 'GamesController@games');
 Route::get('/editor/create', 'GamesController@createGame');
+Route::post('/editor/create', 'GamesController@createGameData');
+
+
+Route::get('/editor/games/edit/{key}', 'GamesController@editGame');
+
+// ==============================================================
