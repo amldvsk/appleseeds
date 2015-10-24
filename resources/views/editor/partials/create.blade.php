@@ -18,8 +18,25 @@
                 <input type="text" class="form-control" id="exampleInputPassword1" placeholder="טקסט פתיחה">
               </div>
               <div class="form-group">
-                  <label for="exampleInputPassword1">כמות השאלות</label>
-                  <input type="number" class="form-control" id="exampleInputPassword1" placeholder="כמות השאלות">
+                  <label for="exampleInputPassword1">תחום תוכן</label>
+                  <select class="form-control" name="" id="">
+                    <option value="0">נא לבחור תחום תוכן</option>
+                    <option value="1">תחום 1</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">קהל יעד</label>
+                  <select class="form-control" name="" id="">
+                    <option value="0">נא לבחור קהל יעד</option>
+                    <option value="1">יעד 1</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="exampleInputPassword1">רמת קושי</label>
+                  <select class="form-control" name="" id="">
+                    <option value="0">נא לבחור רמת קושי</option>
+                    <option value="1">רמה 1</option>
+                  </select>
                 </div>
               <div class="form-group">
                   <label for="exampleInputPassword1">הודעת פתיחה</label>
