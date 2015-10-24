@@ -29,7 +29,12 @@
           <td>Otto</td>
           <td>@mdo</td>
           <td>Otto</td>
-          <td><button type="button" class="btn btn-success">שכפול</button></td>
+          <td>
+            <div class="btn-group" role="group" aria-label="...">
+              <button type="button" class="btn btn-success">שכפול</button>
+              <button type="button" class="btn btn-primary">צפייה</button>
+            </div>
+          </td>
         </tr>
         <tr>
           <th scope="row">2</th>
@@ -44,6 +49,7 @@
             <div class="btn-group" role="group" aria-label="...">
               <button type="button" class="btn btn-danger">מחיקה</button>
               <button type="button" class="btn btn-info">עריכה</button>
+              <button type="button" class="btn btn-primary">צפייה</button>
             </div>
           </td>
         </tr>
@@ -56,7 +62,12 @@
           <td>Otto</td>
           <td>@mdo</td>
           <td>Otto</td>
-          <td><button type="button" class="btn btn-success">שכפול</button></td>
+          <td>
+            <div class="btn-group" role="group" aria-label="...">
+              <button type="button" class="btn btn-success">שכפול</button>
+              <button type="button" class="btn btn-primary">צפייה</button>
+            </div
+          </td>
         </tr>
       </tbody>
     </table>

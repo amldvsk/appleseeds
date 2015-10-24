@@ -16,6 +16,7 @@ class CreateGamesTable extends Migration
         {
             $table->increments('id');
             $table->string('game_name');
+            $table->string('unique_id');
             $table->string('game_opening_statement');
             $table->text('game_desc');
             $table->string('game_ending_statement');
