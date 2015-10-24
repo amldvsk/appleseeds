@@ -14,3 +14,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('/editor', 'GamesController@index');
+Route::get('/editor/games', 'GamesController@games');
