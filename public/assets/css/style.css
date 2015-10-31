@@ -88,3 +88,23 @@ th {
 .help-block {
     color: #a94442;
 }
+
+
+.form-group ul.answers {
+    margin-top: 1.5em;
+}
+
+.answer_input {
+    float: right;
+    width: calc(100% - 200px);
+}
+
+.status_input {
+    float: right;
+    width: 150px;
+    margin-right: 30px;
+}
+
+.question_panel .close {
+    float: left;
+}

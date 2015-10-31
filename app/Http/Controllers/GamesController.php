@@ -37,6 +37,16 @@ class GamesController extends Controller {
     }
 
 
+    function createGameQuestions() {
+        return view('editor.partials.questions')->with('active', 2);
+    }
+
+
+    function createGameQuestionsData() {
+        dd(Input::all());
+    }
+
+
     function createGameData() {
         // create the validation rules ------------------------
         $rules = array(

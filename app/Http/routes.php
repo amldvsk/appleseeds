@@ -24,8 +24,9 @@ Route::get('/', function () {
 Route::get('/editor', 'GamesController@index');
 Route::get('/editor/games', 'GamesController@games');
 Route::get('/editor/create', 'GamesController@createGame');
+Route::get('/editor/create/questions', 'GamesController@createGameQuestions');
 Route::post('/editor/create', 'GamesController@createGameData');
-
+Route::post('/editor/create/questions', 'GamesController@createGameQuestionsData');
 
 Route::get('/editor/games/edit/{key}', 'GamesController@editGame');
 
