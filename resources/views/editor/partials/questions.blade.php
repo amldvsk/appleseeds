@@ -3,6 +3,9 @@
 
 
 @section('content')
+
+
+
     <div class="panel panel-success">
         <div class="panel-heading">
             <h3 class="panel-title">הוספת שאלות</h3>
@@ -10,6 +13,13 @@
         <div class="panel-body">
             <p>הוספת שאלות למשחק</p>
              <form action="{{URL::to('/editor/create/questions')}}" class="add-questions" method="POST">
+                @if ($errors->has())
+                    <div class="alert alert-danger">
+                        @foreach ($errors->all() as $error)
+                            {{ $error }}<br>
+                        @endforeach
+                    </div>
+                @endif
                  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                     @for ($i = 0; $i < 5; $i++)
                       <div class="panel panel-default question_panel">
@@ -57,6 +67,7 @@
                 <hr/>
                <div class="text-right">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="game_id" value="{{ $game_id  }}">
                     <button type="submit" class="btn btn-success">צור משחק</button>
                </div>
             </form>

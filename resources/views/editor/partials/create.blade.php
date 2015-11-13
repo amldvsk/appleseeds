@@ -62,6 +62,10 @@
                  <input type="text" class="form-control" id="game_ending_statement" name="game_ending_statement" placeholder="הודעת סיום"   value="{{ Input::old('game_ending_statement') }}">
                  @if ($errors->has('game_ending_statement')) <p class="help-block">{{ $errors->first('game_ending_statement') }}</p> @endif
                </div>
+               <div class="form-group">
+                    <label for="game_time">הגבלת זמן המשחק בשניות (0 ללא הגבלת זמן)</label>
+                    <input type="number" class="form-control" id="game_time" name="game_time" placeholder="הודעת סיום"  min="0" value="{{ (Input::old('game_time') ? Input::old('game_time') : 0) }}">
+                  </div>
                <div class="text-right">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-success">המשך</button>

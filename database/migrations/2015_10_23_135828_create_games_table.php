@@ -23,6 +23,8 @@ class CreateGamesTable extends Migration
             $table->integer('audience');
             $table->integer('difficulty_level');
             $table->integer('content_area');
+            $table->integer('active')->default(0);
+            $table->integer('game_time')->default(0);
             $table->timestamps();
         });
     }

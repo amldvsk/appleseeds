@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +10,6 @@ class Games extends Model
     //protected $fillable = ['name', 'email', 'password', 'provider', 'provider_id', 'first_name', 'last_name', 'active', 'invited'];
 
     public function questions() {
-        return $this->hasMany('App\Http\Models\Questions', 'game_id');
+        return $this->hasMany('App\Http\Models\Questions', 'game_id')->with('answers');
     }
 }
