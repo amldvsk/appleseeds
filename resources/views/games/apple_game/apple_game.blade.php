@@ -7,8 +7,8 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
 </head>
-<body onLoad ="fromServer()">
-    {{ $game  }}
+<body onLoad ="fromServer({{ $game  }})">
+
     <canvas id="mycanvas" lang="ar" dir="rtl"></canvas>
     <canvas id="buffercanvas" lang="ar" dir="rtl"></canvas>
     <script src="{{ asset('assets/games/apple_game/scripts/script.js') }}" ></script>

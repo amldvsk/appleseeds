@@ -64,45 +64,51 @@ var buffer;
 
 //load all images
 {
-	var flares_1 = loadImage("assets/games/apple_game/images/lensflares_1.png");
+	var flares_1 = loadImage("../assets/games/apple_game/images/lensflares_1.png");
 	//Ready Flare One / Earnest Decline
-	var flares_2 = loadImage("assets/games/apple_game/images/lensflares_2.png");
+	var flares_2 = loadImage("../assets/games/apple_game/images/lensflares_2.png");
 	//that thing JJ Abrams eats for breakfast
-	var flares_3 = loadImage("assets/games/apple_game/images/lensflares_3.png");
+	var flares_3 = loadImage("../assets/games/apple_game/images/lensflares_3.png");
 	//the little light thingies on the camera
-	var sky = loadImage("assets/games/apple_game/images/sky.jpg");
+	var sky = loadImage("../assets/games/apple_game/images/sky.jpg");
 	//the background ft. sun! yes, *The* sun.
-	var grass1 = loadImage("assets/games/apple_game/images/grass_1.png");
+	var grass1 = loadImage("../assets/games/apple_game/images/grass_1.png");
 	//grass2 is greener
-	var grass2 = loadImage("assets/games/apple_game/images/grass_2.png");
+	var grass2 = loadImage("../assets/games/apple_game/images/grass_2.png");
 	//grass1 is greener
-	var apple = loadImage("assets/games/apple_game/images/apple.png");
+	var apple = loadImage("../assets/games/apple_game/images/apple.png");
 	//won't allow any doctors to approach.
-	var tree = loadImage("assets/games/apple_game/images/tree.png");
+	var tree = loadImage("../assets/games/apple_game/images/tree.png");
 	//infested with clones of little jonathan.
-	var treetop = loadImage("assets/games/apple_game/images/tree_top.png");
+	var treetop = loadImage("../assets/games/apple_game/images/tree_top.png");
 	//dreams of becoming a very famous zameret
-	var treefront = loadImage("assets/games/apple_game/images/tree_front.png");
+	var treefront = loadImage("../assets/games/apple_game/images/tree_front.png");
 	//no puns for this one
-	var fog = loadImage("assets/games/apple_game/images/fog.png");
+	var fog = loadImage("../assets/games/apple_game/images/fog.png");
 	// can go around the world in just 80 days. chooses to float around aimlessly instead.
-	var success = loadImage("assets/games/apple_game/images/right.png");
+	var success = loadImage("../assets/games/apple_game/images/right.png");
 	//...is relative.
-	var failure = loadImage("assets/games/apple_game/images/wrong.png");
+	var failure = loadImage("../assets/games/apple_game/images/wrong.png");
 	// a metaphor for my life.
-	var logo = loadImage("assets/games/apple_game/images/logo.png");
+	var logo = loadImage("../assets/games/apple_game/images/logo.png");
 	//weird electronic plant thing around score is appleseeds logo. ugh.
 	var propeller = [];
 }
 //this function is called on load. It should take as input an object containing all relevant json data.
-function fromServer() {
+function fromServer(data) {
+    console.log(data)
 	//initialize opening message
-	openingMessage = "����� ����� ������";
+	openingMessage = data.game_opening_statement;
 	//initialize closing message
-	closingMessage = "����� ����. �� �����. ��� �����.";
+	closingMessage = data.game_ending_statement;
 	//add questions here, oh mighty questioneer!
 	cQuestions = [];
 	//new Question (array of answers[new Answer(Answer, is this answer correct?)],the question itself, time for question, 10) this is the correct order! but if you look at the questions added in the lines below, the order of variables can probably seem different. This is because most IDEs don't know what to do with hebrew.
+
+    for( var i = 0; i <  data.questions; i++) {
+        //create Question objects;
+    }
+
 	cQuestions.push(new Question([new Answer("�� ������� ������", false), new Answer("������� ����� ����", true), new Answer("����� ������ ����", false)], "���� ����� ������� �������� �� ������ ����� �����. �� ���� ������� ������� ����� ������ ����� �����, ���� �������� �����:", 10, 10));
 	cQuestions.push(new Question([new Answer("��������", false), new Answer("���", true), new Answer("�������", false)], "�� ����� ����� �����?", 4, 10));
 	setup();
@@ -131,7 +137,7 @@ function setup() {//setup or restart
 	buffer.lineWidth = 3;
 	//initiate propeller frames!
 	for (var i = 0; i < 6; i++) {
-		propeller.push(loadImage("assets/games/apple_game/images/propeller/frame_" + (i + 1) + ".png"));
+		propeller.push(loadImage("../assets/games/apple_game/images/propeller/frame_" + (i + 1) + ".png"));
 	}
 	//initialize stuff
 	endGame = false;
@@ -144,7 +150,7 @@ function setup() {//setup or restart
 		questions.push(cQuestions[i]);
 	}
 	for (var i = 0; i < 6; i++) {
-		propeller.push(loadImage("assets/games/apple_game/images/propeller/frame_" + (i + 1) + ".png"));
+		propeller.push(loadImage("../assets/games/apple_game/images/propeller/frame_" + (i + 1) + ".png"));
 	}
 	//initiate animation variable to 0;
 	animation = 0;
@@ -194,7 +200,7 @@ function nextLevel() {//go to the next question
 	else {
 		endGame = true;
 		//is the pointer has reached the end of the questions list, please print a friendly message.
-		console.log("ok. that will be all. have a great day and stuff.");
+		//console.log("ok. that will be all. have a great day and stuff.");
 		//very friendly.
 	}
 }
@@ -390,7 +396,7 @@ function frameListener()//change stuff here!
 {
 	var dt = time - (prevTime || time);
 	prevTime = time;
-	console.log(1000/dt);//print framerate
+	//console.log(1000/dt);//print framerate
 	if (!startGame && (!endGame || results.length != 0)) {
 
 		var outOfScreen = true;
