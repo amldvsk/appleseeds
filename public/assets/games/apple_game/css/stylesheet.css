@@ -1,0 +1,13 @@
+canvas {
+	border-color: black;
+	border: 5px;
+	border-style: solid;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	height:80%;
+	width:(height*1200/705)px;
+}
