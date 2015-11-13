@@ -83,9 +83,10 @@ class GamesController extends Controller {
                 $questions->game_id = Input::get('game_id');
                 $questions->question = $qus['question']['question_text'];
                 $questions->save();
+                $index = 0;
                 foreach($qus['question']['answers'] as $ans) {
                     $answers = new Answers;
-                    $answers->right_answer = (int)$qus['question']["right_answer"];
+                    $answers->right_answer = ($index++ == (int)$qus['question']["right_answer"] ? 1 : 0);
                     $answers->answer = $ans;
                     $answers->question_id = $questions->id;
                     $answers->save();

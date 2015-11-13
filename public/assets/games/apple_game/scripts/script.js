@@ -104,13 +104,19 @@ function fromServer(data) {
 	//add questions here, oh mighty questioneer!
 	cQuestions = [];
 	//new Question (array of answers[new Answer(Answer, is this answer correct?)],the question itself, time for question, 10) this is the correct order! but if you look at the questions added in the lines below, the order of variables can probably seem different. This is because most IDEs don't know what to do with hebrew.
-
-    for( var i = 0; i <  data.questions; i++) {
+    for( var i = 0; i <  data.questions.length; i++) {
         //create Question objects;
+        var buildAns = [];
+        for(var j = 0; j < data.questions[i].answers.length; j++) {
+            var ans = new Answer(data.questions[i].answers[j].answer, (data.questions[i].answers[j].right_answer == '1' ? true : false));
+            buildAns.push(ans);
+        }
+
+        cQuestions.push(new Question(buildAns, data.questions[i].question, 4, 10));
     }
 
-	cQuestions.push(new Question([new Answer("�� ������� ������", false), new Answer("������� ����� ����", true), new Answer("����� ������ ����", false)], "���� ����� ������� �������� �� ������ ����� �����. �� ���� ������� ������� ����� ������ ����� �����, ���� �������� �����:", 10, 10));
-	cQuestions.push(new Question([new Answer("��������", false), new Answer("���", true), new Answer("�������", false)], "�� ����� ����� �����?", 4, 10));
+	//cQuestions.push(new Question([new Answer("�� ������� ������", false), new Answer("������� ����� ����", true), new Answer("����� ������ ����", false)], "���� ����� ������� �������� �� ������ ����� �����. �� ���� ������� ������� ����� ������ ����� �����, ���� �������� �����:", 10, 10));
+	//cQuestions.push(new Question([new Answer("��������", false), new Answer("���", true), new Answer("�������", false)], "�� ����� ����� �����?", 4, 10));
 	setup();
 }
 
