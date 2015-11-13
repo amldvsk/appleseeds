@@ -5,7 +5,7 @@
 @section('content')
     <div class="panel panel-success">
         <div class="panel-heading">
-            <h3 class="panel-title">יצירת משחק</h3>
+            <h3 class="panel-title">הוספת שאלות</h3>
         </div>
         <div class="panel-body">
             <p>הוספת שאלות למשחק</p>

@@ -31,3 +31,13 @@ Route::post('/editor/create/questions', 'GamesController@createGameQuestionsData
 Route::get('/editor/games/edit/{key}', 'GamesController@editGame');
 
 // ==============================================================
+
+
+
+// ==============================================================
+// EDITOR ROUTES ================================================
+// ==============================================================
+
+Route::get('/game', 'PublicGamesController@getGame');
+
+// ==============================================================
