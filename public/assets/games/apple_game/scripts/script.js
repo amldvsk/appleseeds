@@ -2,6 +2,8 @@
 {
     //for operations
     var mx = 0;
+    
+    
     //mouse x value
     var my = 0;
     //my oh my!
