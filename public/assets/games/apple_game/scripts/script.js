@@ -373,7 +373,7 @@ function repaint(ctx, buffer)//draw stuff here!
 	function drawStrokedText(context, text, x, y)//draws white text with a 1px black border
 	{
 		context.fillStyle = "rgb(0,0,0)";
-		if (time - prevTime > 80) {
+		if (time - prevTime > 110) {
 			strokeText(context, text, x, y);
 		} else {
 			showText(context, text, x - 1, y - 1);
