@@ -18,6 +18,10 @@
 	//good night
 	var score;
 	//the score. currently goes up by 10 for each right answer. penalty for wrong answer is -1.
+	var scoreUp;
+	//this is the effects that will show when the score goes up.
+	var presentedScore;
+	//at the end of the game, the score is presented starting from zero and slowly growing up.
 	var pos;
 	//question number. starts at -1.
 	var falling;
@@ -26,6 +30,10 @@
 	//has the last level been finished? if so, present ending screen
 	var startGame;
 	//ready player one. is true in the beginning, becomes false when the player presses the Play button, after the game has been loaded.
+	var display_tutorial;
+	//when true, if the game hasn't began, a tutorial will be shown.
+	var tutorial_pos;
+	//the height of the tutorial page as displayed.
 	var alreadyPopped;
 	//have the player already popped an apple this turn? if so, don't allow them to pop more!
 	var rightAns;
@@ -68,6 +76,12 @@
 
 //load all images
 {
+	var main_menu = loadImage("../assets/games/apple_game/images/main_menu.jpg");
+	//the background to the main menu
+	var ending_screen = loadImage("../assets/games/apple_game/images/ending_screen.jpg");
+	//the background to the ending/score display screen
+	var tutorial = loadImage("../assets/games/apple_game/images/tutorial.jpg");
+	//the instructions to the game
 	var flares_1 = loadImage("../assets/games/apple_game/images/lensflares_1.png");
 	//Ready Flare One / Earnest Decline
 	var flares_2 = loadImage("../assets/games/apple_game/images/lensflares_2.png");
@@ -94,6 +108,13 @@
 	//...is relative.
 	var failure = loadImage("../assets/games/apple_game/images/wrong.png");
 	// a metaphor for my life.
+	//medals
+	var bronze = loadImage("../assets/games/apple_game/images/bronze.png");
+	var silver = loadImage("../assets/games/apple_game/images/silver.png");
+	var gold = loadImage("../assets/games/apple_game/images/gold.png");
+	//light behind medals
+	var light_1 = loadImage("../assets/games/apple_game/images/light_1.png");
+	var light_2 = loadImage("../assets/games/apple_game/images/light_2.png");
 	var propeller = [];
 	var firefly_frames = [];
 }
@@ -147,6 +168,8 @@ function setup() {//setup or restart
 	//initialize stuff
 	endGame = false;
 	startGame = true;
+	display_tutorial = false;
+	tutorial_pos = 0;
 	//lists
 	questions = [];
 	results = [];
@@ -158,12 +181,16 @@ function setup() {//setup or restart
 	animation = 0;
 	//fog starts to the left of the screen
 	fogPos = 0;
+	//initiate level pointer to -1
 	pos = -1;
 	//add fireflies
 	addFireflies();
-	//initiate level pointer to 0
-	score = 0;
 	//initiate score to 0
+	score = 0;
+	//initiate score up effect
+	scoreUp = new scoreEffect(0, 255);
+	//initiate presented score to 0 so that counting to the score will start from 0
+	presentedScore = 0;
 	falling = false;
 	alreadyPopped = false;
 	rightAns = false;
@@ -301,32 +328,68 @@ function repaint(ctx, buffer)//draw stuff here!
 		//draw score
 		buffer.font = "normal 48px Alef Hebrew";
 		drawStrokedText(buffer, score, 1125, 650);
+		//draw score up effect
+		if (scoreUp.getOpacity() > 0) {
+
+			if (scoreUp.score == 10)
+				buffer.fillStyle = "rgba(50,255,0," + scoreUp.getOpacity() + ")";
+			else if (scoreUp.score < 4)
+				buffer.fillStyle = "rgba(255,0,0," + scoreUp.getOpacity() + ")";
+			else
+				buffer.fillStyle = "rgba(0,0,0," + scoreUp.getOpacity() + ")";
+			showText(buffer, "+" + scoreUp.score, 1125, scoreUp.getY());
+		}
 		ctx.drawImage(bufferCanvas, 0, 0);
 		//ctx.fillText(Math.floor(1000 / (time - (prevTime || time))), 200, 200);
 	} else if (startGame) {
-		ctx.textAlign = "center";
-		ctx.fillStyle = "rgb(0,0,0)";
-		ctx.font = "normal 60px Alef Hebrew";
-		message = addLn(openingMessage, buffer, 1000);
-		//separate text to different lines for more efficient printing.
-		for (var j = 0; j < message.length; j++)//draw answers, in parts
-		{
-			showText(ctx, message[j], 600, 300 + j * 60);
+		if (!display_tutorial) {
+			ctx.drawImage(main_menu, 0, 0);
+			ctx.textAlign = "center";
+			ctx.fillStyle = "rgb(0,0,0)";
+			ctx.font = "normal 60px Alef Hebrew";
+			message = addLn(openingMessage, buffer, 1000);
+			//separate text to different lines for more efficient printing.
+			for (var j = 0; j < message.length; j++)//draw answers, in parts
+			{
+				showText(ctx, message[j], 600, 100 + j * 60);
+			}
+		} else {
+			ctx.scale(1200 / 904, 1200 / 904);
+			ctx.drawImage(tutorial, 0, -2 - tutorial_pos);
+			ctx.scale(904 / 1200, 904 / 1200);
 		}
 	} else if (endGame && results.length == 0) {
+		ctx.drawImage(ending_screen, 0, 0);
 		ctx.textAlign = "center";
-		ctx.fillStyle = "rgb(255,255,255)";
-		ctx.fillRect(0, 0, 1200, 705);
 		ctx.fillStyle = "rgb(0,0,0)";
 		ctx.font = "normal 60px Alef Hebrew";
 		message = addLn(closingMessage, buffer, 1000);
 		//separate text to different lines for more efficient printing.
 		for (var j = 0; j < message.length; j++)//draw answers, in parts
 		{
-			showText(ctx, message[j], 600, 300 + j * 60);
+			showText(ctx, message[j], 600, 150 + j * 60);
 		}
-		showText(ctx, score, 600, 100);
-		ctx.fillRect(500, 500, 200, 100);
+		showText(ctx, Math.floor(presentedScore), 600, 75);
+		if (presentedScore >= 5 * cQuestions.length && presentedScore == score) {
+			//back light, dim
+			ctx.translate(585, 320);
+			ctx.rotate(-animation * Math.PI / 180);
+			ctx.drawImage(light_2, -200, -200);
+			ctx.rotate(animation * Math.PI / 180);
+			ctx.translate(-585, -320);
+			//front light, bright
+			ctx.translate(585, 320);
+			ctx.rotate(animation * Math.PI / 180);
+			ctx.drawImage(light_1, -185, -175);
+			ctx.rotate(-animation * Math.PI / 180);
+			ctx.translate(-585, -320);
+		}
+		if (presentedScore >= 10 * cQuestions.length)
+			ctx.drawImage(gold, 440, 180);
+		else if (presentedScore >= 9 * cQuestions.length)
+			ctx.drawImage(silver, 440, 180);
+		else if (presentedScore >= 5 * cQuestions.length)
+			ctx.drawImage(bronze, 440, 180);
 	}
 	frameListener();
 }
@@ -420,6 +483,8 @@ function frameListener()//change stuff here!
 		animation += dt / (1000 / 30);
 		if (animation >= 1)
 			animation = 0;
+		if (scoreUp.getOpacity() > 0)
+			scoreUp.nextFrame();
 		if (falling)//only if the apples are already falling...
 		{
 			for (var i = 0; i < questions[pos].answers.length; i++) {//move answers
@@ -448,6 +513,7 @@ function frameListener()//change stuff here!
 			{
 				if (results[i].correct) {
 					score += results[i].points;
+					scoreUp = new scoreEffect(results[i].points, 0);
 				}
 				results.splice(i, 1);
 			}
@@ -471,6 +537,27 @@ function frameListener()//change stuff here!
 		//move camera around
 		camera.x = mx + (Math.cos(idleCam * (Math.PI / 180)) * 250);
 		camera.y = my + (Math.abs(Math.sin(idleCam * (Math.PI / 180))) * 100);
+	} else if (endGame && results.length == 0) {
+		animation += 2;
+		if (animation > 360)
+			animation = 0;
+		if (presentedScore < score)
+			//add to presented score.
+			presentedScore += Math.max((Math.min(0.7, (Math.pow((score - presentedScore), 2) * 0.015))), 0.1);
+		else
+			presentedScore = score;
+	} else if (startGame && display_tutorial) {
+		if (my - (screenHeight / 2) > 200) {
+			tutorial_pos += 30 * (my - 200 - (screenHeight / 2)) / (screenHeight / 2);
+			if (tutorial_pos >= 880)
+				tutorial_pos = 880;
+
+		}
+		if (my - (screenHeight / 2) < -200) {
+			tutorial_pos += 30 * (my + 200 - (screenHeight / 2)) / (screenHeight / 2);
+			if (tutorial_pos <= 0)
+				tutorial_pos = 0;
+		}
 	}
 }
 
@@ -493,17 +580,24 @@ function getPosition(evt) {
 	mx = Math.round((evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width);
 	//self explanatory
 	my = Math.round((evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height);
-	//mx -= canvas.offsetLeft;
-	//I will deal with you later. should also include the canvas size, since screens with differing resolutions will require to resize the canvas accordingly.
-	//my -= canvas.offsetTop;
 }
 
 function mouseReleased() {
 	//if on main menu screen
 	if (startGame) {
-		start();
+		if (!display_tutorial) {
+			if (mx > 831 && mx < 1050 && my > 437 & my < 633)
+				start();
+			if (mx > 210 && mx < 350 && my > 440 & my < 645)
+				display_tutorial = true;
+		} else {
+			if (mx > 450 && mx < 750 && my + tutorial_pos > 1525 && my + tutorial_pos < 1580) {
+				display_tutorial = false;
+				tutorial_pos = 0;
+			}
+		}
 	} else if (endGame && results.length == 0) {
-		if (mx > 500 && mx < 700 && my > 500 & my < 600)
+		if (mx > 500 && mx < 700 && my > 500 & my < 680)
 			setup();
 	}
 	//if ingame
@@ -527,129 +621,147 @@ function mouseReleased() {
 }
 
 //classes ahoy!
-function Answer(content, correct) {
-	this.does = correct;
-	//me if I'm wrong.
-	this.content = content;
-	//the meat of the answer. vegan friendly meat.
-		this.animFrame = Math.floor(Math.random() * 25);
-	//this is the current frame for the propeller animation.
-	this.x = 0;
-	this.y = 0;
-	this.xVel = 0;
-	//Vel stands for velocity. duh.
-	this.yVel = 0;
-	this.img = getImg();
-	this.popped = false;
-	//was this apple popped? you can pop an apple by clicking on it!
-	function getImg() {//sets an image at random. only there is only one image to choose from. not very random...
-		var type = Math.floor(Math.random() * 1);
-		//currently only one type of apples
-		switch (type) {
-		case 0:
-			return apple;
-			break;
-		}
-	};
-	this.pop = function() {
-		this.popped = true;
-		results.push(new Result(this.does, this.x, this.y, questions[pos].points));
-		alreadyPopped = true;
-		rightAns = this.does;
-	};
-	this.animate = function() {
-		this.animFrame++;
-		if (this.animFrame >= propeller.length)
-			this.animFrame = 0;
-	};
-}
-
-function Question(options, q, time, points)//a single question
 {
-	this.time = time;
-	//the time required for the apples to each the ground. in seconds. ugh.
-	this.question = q;
-	//the question itself
-	this.points = points;
-	if (this.points < 0) {
-		this.points = 0;
+	function Answer(content, correct) {
+		this.does = correct;
+		//me if I'm wrong.
+		this.content = content;
+		//the meat of the answer. vegan friendly meat.
+		this.animFrame = Math.floor(Math.random() * 25);
+		//this is the current frame for the propeller animation.
+		this.x = 0;
+		this.y = 0;
+		this.xVel = 0;
+		//Vel stands for velocity. duh.
+		this.yVel = 0;
+		this.img = getImg();
+		this.popped = false;
+		//was this apple popped? you can pop an apple by clicking on it!
+		function getImg() {//sets an image at random. only there is only one image to choose from. not very random...
+			var type = Math.floor(Math.random() * 1);
+			//currently only one type of apples
+			switch (type) {
+			case 0:
+				return apple;
+				break;
+			}
+		};
+		this.pop = function() {
+			this.popped = true;
+			results.push(new Result(this.does, this.x, this.y, questions[pos].points));
+			alreadyPopped = true;
+			rightAns = this.does;
+		};
+		this.animate = function() {
+			this.animFrame++;
+			if (this.animFrame >= propeller.length)
+				this.animFrame = 0;
+		};
 	}
-	var tempAns = options;
-	//this is here just for initiation purposes. mostly 42.
-	setStandardPosition();
-	//set the position of each apple.
-	function setStandardPosition() {
-		var amount = tempAns.length;
-		var rnd = [];
-		//scramble answers position
-		for (var i = 0; i < amount; i++) {
-			rnd.push(-1);
+
+	function Question(options, q, time, points)//a single question
+	{
+		this.time = time;
+		//the time required for the apples to each the ground. in seconds. ugh.
+		this.question = q;
+		//the question itself
+		this.points = points;
+		if (this.points < 0) {
+			this.points = 0;
 		}
-		for (var i = 0; i < amount; i++) {
-			var does = false;
-			while (!does) {
-				var pos = Math.floor(Math.random() * amount);
-				if (rnd[pos] == -1) {
-					rnd[pos] = i;
-					does = true;
+		var tempAns = options;
+		//this is here just for initiation purposes. mostly 42.
+		setStandardPosition();
+		//set the position of each apple.
+		function setStandardPosition() {
+			var amount = tempAns.length;
+			var rnd = [];
+			//scramble answers position
+			for (var i = 0; i < amount; i++) {
+				rnd.push(-1);
+			}
+			for (var i = 0; i < amount; i++) {
+				var does = false;
+				while (!does) {
+					var pos = Math.floor(Math.random() * amount);
+					if (rnd[pos] == -1) {
+						rnd[pos] = i;
+						does = true;
+					}
 				}
 			}
-		}
-		for (var i = 0; i < amount; i++) {
-			tempAns[rnd[i]].popped = false;
-			// no answers where popped, cause this is only the initiation stage. note that without this line, all the answers would show up for the first time, but if the same questions comes up twice cause you where wrong, the answers that are already popped won't show up.
-			tempAns[rnd[i]].y = -200 - Math.floor(Math.random() * 100);
-			tempAns[rnd[i]].x = (600 / amount) + i * (1000 / amount);
-			tempAns[rnd[i]].xVel = 0;
-			tempAns[rnd[i]].yVel = screenHeight / (time * 1000) + (Math.random() * 0.02 * 10 / time);
-			//set velocity such that the apples will reach the bottom when after [time]
-		}
-	};
-	this.answers = tempAns;
-	tempAns = [];
-	switch(this.points) {
-	case 10:
-		this.delay = this.question.length * 50;
-		break;
-	case 9:
-		this.delay = this.question.length * 30;
-		break;
-	case 8:
-		this.delay = this.question.length * 20;
-		break;
-	default:
-		this.delay = this.question.length * 10;
+			for (var i = 0; i < amount; i++) {
+				tempAns[rnd[i]].popped = false;
+				// no answers where popped, cause this is only the initiation stage. note that without this line, all the answers would show up for the first time, but if the same questions comes up twice cause you where wrong, the answers that are already popped won't show up.
+				tempAns[rnd[i]].y = -200 - Math.floor(Math.random() * 100);
+				tempAns[rnd[i]].x = (600 / amount) + i * (1000 / amount);
+				tempAns[rnd[i]].xVel = 0;
+				tempAns[rnd[i]].yVel = screenHeight / (time * 1000) + (Math.random() * 0.02 * 10 / time);
+				//set velocity such that the apples will reach the bottom when after [time]
+			}
+		};
+		this.answers = tempAns;
+		tempAns = [];
+		switch(this.points) {
+		case 10:
+			this.delay = this.question.length * 50;
+			break;
+		case 9:
+			this.delay = this.question.length * 30;
+			break;
+		case 8:
+			this.delay = this.question.length * 20;
+			break;
+		default:
+			this.delay = this.question.length * 10;
 
+		}
+		//the time it will take for the answers to start falling after the question is first presented. in millis.
 	}
-	//the time it will take for the answers to start falling after the question is first presented. in millis.
-}
 
-function Result(correct, x, y, points) {
-	this.points = points;
-	this.correct = correct;
-	this.x = x;
-	// the x = x looks like a dead person's face. that's because it is. A person dies each time this game is loaded, and their face is stripped off their skull, and used for the duration of the code for multiple processes.
-	this.y = y;
-	// ahh, y = y, the tearful eyes of a child mourning their parent, whose face mysteriously vanished.
-	this.xVel = 0;
-	this.yVel = -10;
-	this.img = getImg(this.correct);
-	function getImg(correct) {
-		if (correct) {
-			return success;
-		} else
-			return failure;
-	};
-}
+	function Result(correct, x, y, points) {
+		this.points = points;
+		this.correct = correct;
+		this.x = x;
+		// the x = x looks like a dead person's face. that's because it is. A person dies each time this game is loaded, and their face is stripped off their skull, and used for the duration of the code for multiple processes.
+		this.y = y;
+		// ahh, y = y, the tearful eyes of a child mourning their parent, whose face mysteriously vanished.
+		this.xVel = 0;
+		this.yVel = -10;
+		this.img = getImg(this.correct);
+		function getImg(correct) {
+			if (correct) {
+				return success;
+			} else
+				return failure;
+		};
+	}
 
-function Firefly(x, y, pos) {
-	this.initialX = x;
-	this.initialY = y;
-	this.x = x;
-	this.y = y;
-	this.pos = pos;
-	this.move = function() {
-		this.x = this.initialX + (Math.cos(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
-		this.y = this.initialY + (Math.sin(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
-	};
+	function scoreEffect(score, frame) {
+		this.score = score;
+		this.frame = frame;
+		this.nextFrame = function() {
+			this.frame++;
+		};
+		this.getOpacity = function() {
+
+			return (255.0 - this.frame * 8) / 255;
+		};
+		this.getY = function() {
+			return 625 - (this.frame * 2);
+		};
+	}
+
+	function Firefly(x, y, pos) {
+		this.initialX = x;
+		this.initialY = y;
+		this.x = x;
+		this.y = y;
+		this.pos = pos;
+		this.move = function() {
+			this.x = this.initialX + (Math.cos(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
+			this.y = this.initialY + (Math.sin(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
+		};
+	}
+
 }
