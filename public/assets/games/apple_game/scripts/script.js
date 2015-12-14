@@ -48,6 +48,8 @@
 	//contains a number between 0 to current chrome version if the app was launched through chrome, contains -1 in any other case.
 	var fogPos;
 	//the fog in the background is moving. there is no need to make a class for it, I just paint two instances of the fog image, one after another. this variable stores the fog X position.
+    var speedFactor;
+    var sPressed;
 }
 //constants
 {
@@ -120,6 +122,8 @@
 }
 //this function is called on load. It should take as input an object containing all relevant json data.
 function fromServer(data) {
+	//make the speed 1:1 what the guide intended. Happens here and not in setup cause we son't want it to be reinitialized on restart.
+	speedFactor=1;
 	console.log(data);
 	//initialize opening message
 	openingMessage = data.game_opening_statement;
@@ -150,6 +154,9 @@ function setup() {//setup or restart
 	//the cat watches.
 	canvas.addEventListener("mouseup", mouseReleased, false);
 	// the cat charges... and misses.
+	//setup key listener
+	document.onkeydown = keyPressed;
+	document.onkeyup = keyReleased;
 	canvas.width = screenWidth;
 	canvas.height = screenHeight;
 	bufferCanvas.width = screenWidth;
@@ -192,9 +199,11 @@ function setup() {//setup or restart
 	//initiate presented score to 0 so that counting to the score will start from 0
 	presentedScore = 0;
 	falling = false;
+		//initiate alreadyPopped to false. also, this statement.
 	alreadyPopped = false;
 	rightAns = false;
-	//initiate alreadyPopped to false. also, this statement.
+	//the shift key isn't pressed.
+sPressed=false;
 	time = new Date().getTime();
 }
 
@@ -391,6 +400,14 @@ function repaint(ctx, buffer)//draw stuff here!
 		else if (presentedScore >= 5 * cQuestions.length)
 			ctx.drawImage(bronze, 440, 180);
 	}
+	//if shift is pressed, show Game Speed
+	if (sPressed)
+	{
+		ctx.fillStyle = "rgb(0,0,0)";
+		ctx.font = "normal 60px Alef Hebrew";
+		ctx.fillText(speedFactor, 50,50);
+	}
+	//listen to the frame (actually, andle physics and do stuff)
 	frameListener();
 }
 
@@ -488,7 +505,7 @@ function frameListener()//change stuff here!
 		if (falling)//only if the apples are already falling...
 		{
 			for (var i = 0; i < questions[pos].answers.length; i++) {//move answers
-				questions[pos].answers[i].y += questions[pos].answers[i].yVel * dt;
+				questions[pos].answers[i].y += questions[pos].answers[i].yVel * dt*speedFactor;
 				if (alreadyPopped)
 					questions[pos].answers[i].yVel += 0.03;
 				//accelerate answers if an answer was popped.
@@ -543,7 +560,7 @@ function frameListener()//change stuff here!
 			animation = 0;
 		if (presentedScore < score)
 			//add to presented score.
-			presentedScore += Math.max((Math.min(0.7, (Math.pow((score - presentedScore), 2) * 0.015))), 0.1);
+			presentedScore += Math.max((Math.min(0.7*cQuestions.length/5, (Math.pow((score - presentedScore), 2) * 0.015))), 0.1);
 		else
 			presentedScore = score;
 	} else if (startGame && display_tutorial) {
@@ -583,7 +600,7 @@ function getPosition(evt) {
 }
 
 function mouseReleased() {
-	//if on main menu screen
+	//if on main menu screen=
 	if (startGame) {
 		if (!display_tutorial) {
 			if (mx > 831 && mx < 1050 && my > 437 & my < 633)
@@ -620,13 +637,44 @@ function mouseReleased() {
 
 }
 
+function keyPressed(e) {
+
+    e = e || window.event;
+    if (e.keyCode == '83') {
+        // ctrl
+        sPressed=true;
+    }
+     if (e.keyCode == '53') {
+        // S
+        if(sPressed)
+        {
+        	speedFactor=Math.max(0.25, speedFactor-0.25);
+        }
+    }
+     if (e.keyCode == '54') {
+        // S
+        if(sPressed)
+        {
+        	speedFactor=Math.min(2, speedFactor+0.25);
+        }
+    }
+}
+function keyReleased(e) {
+
+    e = e || window.event;
+
+    if (e.keyCode == '83') {
+        // S
+        sPressed=false;
+    }
+}
 //classes ahoy!
 {
 	function Answer(content, correct) {
 		this.does = correct;
 		//me if I'm wrong.
 		this.content = content;
-		//the meat of the answer. vegan friendly meat.
+		//the meat of the answer. Vegan friendly meat.
 		this.animFrame = Math.floor(Math.random() * 25);
 		//this is the current frame for the propeller animation.
 		this.x = 0;
