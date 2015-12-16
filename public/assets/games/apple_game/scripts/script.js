@@ -48,8 +48,12 @@
 	//contains a number between 0 to current chrome version if the app was launched through chrome, contains -1 in any other case.
 	var fogPos;
 	//the fog in the background is moving. there is no need to make a class for it, I just paint two instances of the fog image, one after another. this variable stores the fog X position.
-    var speedFactor;
-    var sPressed;
+
+	//these are for the teacher
+	var speedFactor;
+	var sPressed;
+	var numOfTries;
+	var tPressed;
 }
 //constants
 {
@@ -106,10 +110,22 @@
 	//no puns for this one
 	var fog = loadImage("../assets/games/apple_game/images/fog.png");
 	// can go around the world in just 80 days. chooses to float around aimlessly instead.
-	var success = loadImage("../assets/games/apple_game/images/right.png");
-	//...is relative.
-	var failure = loadImage("../assets/games/apple_game/images/wrong.png");
-	// a metaphor for my life.
+	//Vs
+	var correct_plain = loadImage("../assets/games/apple_game/images/correct_plain.png");
+	var correct_flower = loadImage("../assets/games/apple_game/images/correct_flower.png");
+	var correct_sunglasses = loadImage("../assets/games/apple_game/images/correct_sunglasses.png");
+	var correct_mustache = loadImage("../assets/games/apple_game/images/correct_mustache.png");
+	var correct_party = loadImage("../assets/games/apple_game/images/correct_party.png");
+	var correct_potter = loadImage("../assets/games/apple_game/images/correct_potter.png");
+	var correct_happy = loadImage("../assets/games/apple_game/images/correct_happy.png");
+	var correct_butterfly = loadImage("../assets/games/apple_game/images/correct_butterfly.png");
+	var correct_hat = loadImage("../assets/games/apple_game/images/correct_hat.png");
+	//evil Xs
+	var wrong_plain = loadImage("../assets/games/apple_game/images/wrong_plain.png");
+	var wrong_pirate = loadImage("../assets/games/apple_game/images/wrong_pirate.png");
+	var wrong_worm = loadImage("../assets/games/apple_game/images/wrong_worm.png");
+	var wrong_pipe = loadImage("../assets/games/apple_game/images/wrong_pipe.png");
+	var wrong_monocle = loadImage("../assets/games/apple_game/images/wrong_monocle.png");
 	//medals
 	var bronze = loadImage("../assets/games/apple_game/images/bronze.png");
 	var silver = loadImage("../assets/games/apple_game/images/silver.png");
@@ -123,7 +139,8 @@
 //this function is called on load. It should take as input an object containing all relevant json data.
 function fromServer(data) {
 	//make the speed 1:1 what the guide intended. Happens here and not in setup cause we son't want it to be reinitialized on restart.
-	speedFactor=1;
+	speedFactor = 1;
+	numOfTries = 0;
 	console.log(data);
 	//initialize opening message
 	openingMessage = data.game_opening_statement;
@@ -199,11 +216,11 @@ function setup() {//setup or restart
 	//initiate presented score to 0 so that counting to the score will start from 0
 	presentedScore = 0;
 	falling = false;
-		//initiate alreadyPopped to false. also, this statement.
+	//initiate alreadyPopped to false. also, this statement.
 	alreadyPopped = false;
 	rightAns = false;
 	//the shift key isn't pressed.
-sPressed=false;
+	sPressed = false;
 	time = new Date().getTime();
 }
 
@@ -249,6 +266,7 @@ function nextLevel() {//go to the next question
 	//have the question pointer grow by one.
 	else {
 		endGame = true;
+		numOfTries++;
 		//if the pointer has reached the end of the questions list, please print a friendly message.
 		console.log("ok. that will be all. have a great day and stuff.");
 		//very friendly.
@@ -305,19 +323,29 @@ function repaint(ctx, buffer)//draw stuff here!
 		//draw apples/answers
 		//set font color to black
 		buffer.fillStyle = "rgb(0,0,0)";
+		buffer.font = "normal 18px Alef Hebrew";
+		buffer.textAlign = "center";
 		for (var i = 0; i < questions[pos].answers.length; i++) {
 			var curr = questions[pos].answers[i];
 			if (!curr.popped) {
 				drawInParallax(buffer, curr.img, curr.x, curr.y, 0);
 				drawInParallax(buffer, propeller[Math.floor((curr.animFrame * Math.max(1, Math.min(questions[pos].time / 10, 2))) % propeller.length)], curr.x - 70, curr.y - 35, 0);
-				buffer.font = "normal 18px Alef Hebrew";
-				buffer.textAlign = "center";
 				var ans = [];
 				ans = addLn(curr.content, buffer, 100);
-				//separate text to different lines for more efficient printing.
-				for (var j = 0; j < ans.length; j++)//draw answers, in parts
-				{
-					showText(buffer, ans[j], curr.x + 75, curr.y + 128 + j * 18 + (-ans.length * 18 / 2));
+				if (ans.length <= 2) {
+					buffer.font = "normal 28px Alef Hebrew";
+					ans = addLn(curr.content, buffer, 100);
+					for (var j = 0; j < ans.length; j++)//draw answers, in parts
+					{
+						showText(buffer, ans[j], curr.x + 75, curr.y + 128 + j * 28 + (-ans.length * 28 / 2));
+					}
+					buffer.font = "normal 18px Alef Hebrew";
+				} else {
+					//separate text to different lines for more efficient printing.
+					for (var j = 0; j < ans.length; j++)//draw answers, in parts
+					{
+						showText(buffer, ans[j], curr.x + 75, curr.y + 128 + j * 18 + (-ans.length * 18 / 2));
+					}
 				}
 			}
 		}
@@ -400,12 +428,17 @@ function repaint(ctx, buffer)//draw stuff here!
 		else if (presentedScore >= 5 * cQuestions.length)
 			ctx.drawImage(bronze, 440, 180);
 	}
-	//if shift is pressed, show Game Speed
-	if (sPressed)
-	{
+	//if S is pressed, show Game Speed
+	if (sPressed) {
 		ctx.fillStyle = "rgb(0,0,0)";
 		ctx.font = "normal 60px Alef Hebrew";
-		ctx.fillText(speedFactor, 50,50);
+		ctx.fillText(speedFactor, 50, 50);
+	}
+	//if T is pressed, show number of tries
+	if (tPressed) {
+		ctx.fillStyle = "rgb(0,0,0)";
+		ctx.font = "normal 60px Alef Hebrew";
+		ctx.fillText(numOfTries, 50, 50);
 	}
 	//listen to the frame (actually, andle physics and do stuff)
 	frameListener();
@@ -505,7 +538,7 @@ function frameListener()//change stuff here!
 		if (falling)//only if the apples are already falling...
 		{
 			for (var i = 0; i < questions[pos].answers.length; i++) {//move answers
-				questions[pos].answers[i].y += questions[pos].answers[i].yVel * dt*speedFactor;
+				questions[pos].answers[i].y += questions[pos].answers[i].yVel * dt * speedFactor;
 				if (alreadyPopped)
 					questions[pos].answers[i].yVel += 0.03;
 				//accelerate answers if an answer was popped.
@@ -560,7 +593,7 @@ function frameListener()//change stuff here!
 			animation = 0;
 		if (presentedScore < score)
 			//add to presented score.
-			presentedScore += Math.max((Math.min(0.7*cQuestions.length/5, (Math.pow((score - presentedScore), 2) * 0.015))), 0.1);
+			presentedScore += Math.max((Math.min(0.7 * cQuestions.length / 5, (Math.pow((score - presentedScore), 2) * 0.015))), 0.1);
 		else
 			presentedScore = score;
 	} else if (startGame && display_tutorial) {
@@ -639,35 +672,43 @@ function mouseReleased() {
 
 function keyPressed(e) {
 
-    e = e || window.event;
-    if (e.keyCode == '83') {
-        // ctrl
-        sPressed=true;
-    }
-     if (e.keyCode == '53') {
-        // S
-        if(sPressed)
-        {
-        	speedFactor=Math.max(0.25, speedFactor-0.25);
-        }
-    }
-     if (e.keyCode == '54') {
-        // S
-        if(sPressed)
-        {
-        	speedFactor=Math.min(2, speedFactor+0.25);
-        }
-    }
+	e = e || window.event;
+	if (e.keyCode == '83') {
+		// S
+		sPressed = true;
+	}
+	if (e.keyCode == '84') {
+		// T
+		tPressed = true;
+	}
+	if (e.keyCode == '53') {
+		// 5
+		if (sPressed) {
+			speedFactor = Math.max(0.25, speedFactor - 0.25);
+		}
+	}
+	if (e.keyCode == '54') {
+		// 6
+		if (sPressed) {
+			speedFactor = Math.min(2, speedFactor + 0.25);
+		}
+	}
 }
+
 function keyReleased(e) {
 
-    e = e || window.event;
+	e = e || window.event;
 
-    if (e.keyCode == '83') {
-        // S
-        sPressed=false;
-    }
+	if (e.keyCode == '83') {
+		// S
+		sPressed = false;
+	}
+	if (e.keyCode == '84') {
+		// T
+		tPressed = false;
+	}
 }
+
 //classes ahoy!
 {
 	function Answer(content, correct) {
@@ -779,9 +820,41 @@ function keyReleased(e) {
 		this.img = getImg(this.correct);
 		function getImg(correct) {
 			if (correct) {
-				return success;
-			} else
-				return failure;
+				switch (Math.floor(Math.random()*40)) {
+				case 0:
+					return correct_flower;
+				case 1:
+					return correct_sunglasses;
+				case 2:
+					return correct_mustache;
+				case 3:
+					return correct_party;
+				case 4:
+					return correct_hat;
+				case 5:
+					return correct_butterfly;
+				case 6:
+					return correct_happy;
+				case 7:
+					return correct_potter;
+				default:
+					return correct_plain;
+				}
+			} else {
+				switch (Math.floor(Math.random()*20)) {
+				case 0:
+					return wrong_monocle;
+				case 1:
+					return wrong_pipe;
+				case 2:
+					return wrong_pirate;
+				case 3:
+					return wrong_worm;
+				default:
+					return wrong_plain;
+				}
+
+			}
 		};
 	}
 
