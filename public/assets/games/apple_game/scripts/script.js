@@ -167,10 +167,10 @@ function setup() {//setup or restart
 	browser = Math.max(window.navigator.userAgent.indexOf("Chrome"), window.navigator.userAgent.indexOf("Firefox"));
 	canvas = document.getElementById('mycanvas');
 	bufferCanvas = document.getElementById('buffercanvas');
+	//setup mouse listeners
 	canvas.addEventListener("mousemove", getPosition, false);
-	//the cat watches.
+	canvas.addEventListener("mousedown", mousePressed, false);
 	canvas.addEventListener("mouseup", mouseReleased, false);
-	// the cat charges... and misses.
 	//setup key listener
 	document.onkeydown = keyPressed;
 	document.onkeyup = keyReleased;
@@ -246,7 +246,7 @@ function nextLevel() {//go to the next question
 	falling = false;
 	//don't race to the ground just yet
 	if (!alreadyPopped || !rightAns) {//if you were wrong or too slow...
-		questions.push(new Question(questions[pos].answers, questions[pos].question, questions[pos].time, questions[pos].points - 1));
+		questions.push(new Question(questions[pos].answers, questions[pos].question, questions[pos].time, 10/((10/questions[pos].points)+1)));
 		//add a new question with the same properties, but with one less point, and only two thirds of delay time between question and answers.
 		questions.splice(pos, 1);
 		//remove unawanted info.
@@ -423,9 +423,9 @@ function repaint(ctx, buffer)//draw stuff here!
 		}
 		if (presentedScore >= 10 * cQuestions.length)
 			ctx.drawImage(gold, 440, 180);
-		else if (presentedScore >= 9 * cQuestions.length)
+		else if (presentedScore >= 20/3 * cQuestions.length)
 			ctx.drawImage(silver, 440, 180);
-		else if (presentedScore >= 5 * cQuestions.length)
+		else if (presentedScore >= 10/2 * cQuestions.length)
 			ctx.drawImage(bronze, 440, 180);
 	}
 	//if S is pressed, show Game Speed
@@ -588,7 +588,7 @@ function frameListener()//change stuff here!
 		camera.x = mx + (Math.cos(idleCam * (Math.PI / 180)) * 250);
 		camera.y = my + (Math.abs(Math.sin(idleCam * (Math.PI / 180))) * 100);
 	} else if (endGame && results.length == 0) {
-		animation += 2;
+		animation += 2*dt/30;
 		if (animation > 360)
 			animation = 0;
 		if (presentedScore < score)
@@ -631,7 +631,25 @@ function getPosition(evt) {
 	//self explanatory
 	my = Math.round((evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height);
 }
-
+function mousePressed() //if the player attempts to pop an apple which is below y= 600 pixels, make it pop on mouse press, don't wait for release.
+{
+	if (!startGame&&!endGame&&!alreadyPopped&&my>600) {//if the game is on (sigh), and no answer was clicked yet for this question, and mouseY>600
+		for (var i = 0; i < questions[pos].answers.length; i++) {//go through all the answers
+			var curr = questions[pos].answers[i];
+			if (!curr.popped)
+				if ((mx > curr.x) && (mx < (curr.x + 150)) && (my > curr.y) && (my < (curr.y + 180))) {//and if the click occurred inside the hitbox of one of the apples
+					curr.pop();
+					//then pop the hell out of it!!!
+					for (var j = 0; j < questions[pos].answers.length; j++) {
+						if (!questions[pos].answers[j].popped)
+							questions[pos].answers[j].yVel = 0.5;
+						//also, make the other apples fall faster, since their propellers just lost the will to spin.
+					}
+					break;
+				}
+		}
+	}
+}
 function mouseReleased() {
 	//if on main menu screen=
 	if (startGame) {
@@ -754,9 +772,9 @@ function keyReleased(e) {
 		//the time required for the apples to each the ground. in seconds. ugh.
 		this.question = q;
 		//the question itself
-		this.points = points;
-		if (this.points < 0) {
-			this.points = 0;
+		this.points = Math.floor(points);
+		if (this.points < 1) {
+			this.points = 1;
 		}
 		var tempAns = options;
 		//this is here just for initiation purposes. mostly 42.
