@@ -54,6 +54,7 @@
 	var sPressed;
 	var numOfTries;
 	var tPressed;
+	var parallaxFactor;
 }
 //constants
 {
@@ -111,21 +112,21 @@
 	var fog = loadImage("../assets/games/apple_game/images/fog.png");
 	// can go around the world in just 80 days. chooses to float around aimlessly instead.
 	//Vs
-	var correct_plain = loadImage("../assets/games/apple_game/images/correct_plain.png");
-	var correct_flower = loadImage("../assets/games/apple_game/images/correct_flower.png");
-	var correct_sunglasses = loadImage("../assets/games/apple_game/images/correct_sunglasses.png");
-	var correct_mustache = loadImage("../assets/games/apple_game/images/correct_mustache.png");
-	var correct_party = loadImage("../assets/games/apple_game/images/correct_party.png");
-	var correct_potter = loadImage("../assets/games/apple_game/images/correct_potter.png");
-	var correct_happy = loadImage("../assets/games/apple_game/images/correct_happy.png");
-	var correct_butterfly = loadImage("../assets/games/apple_game/images/correct_butterfly.png");
-	var correct_hat = loadImage("../assets/games/apple_game/images/correct_hat.png");
+	var correct_plain = loadImage("../assets/games/apple_game/images/correct/correct_plain.png");
+	var correct_flower = loadImage("../assets/games/apple_game/images/correct/correct_flower.png");
+	var correct_mustache = loadImage("../assets/games/apple_game/images/correct/correct_mustache.png");
+	var correct_happy = loadImage("../assets/games/apple_game/images/correct/correct_happy.png");
+	var correct_butterfly = loadImage("../assets/games/apple_game/images/correct/correct_butterfly.png");
+	var correct_hat = loadImage("../assets/games/apple_game/images/correct/correct_hat.png");
+	var correct_rabbit = loadImage("../assets/games/apple_game/images/correct/correct_rabbit.png");
+	var correct_snowman = loadImage("../assets/games/apple_game/images/correct/correct_snowman.png");
+
 	//evil Xs
-	var wrong_plain = loadImage("../assets/games/apple_game/images/wrong_plain.png");
-	var wrong_pirate = loadImage("../assets/games/apple_game/images/wrong_pirate.png");
-	var wrong_worm = loadImage("../assets/games/apple_game/images/wrong_worm.png");
-	var wrong_pipe = loadImage("../assets/games/apple_game/images/wrong_pipe.png");
-	var wrong_monocle = loadImage("../assets/games/apple_game/images/wrong_monocle.png");
+	var wrong_plain = loadImage("../assets/games/apple_game/images/wrong/wrong_plain.png");
+	var wrong_worm = loadImage("../assets/games/apple_game/images/wrong/wrong_worm.png");
+	var wrong_pipe = loadImage("../assets/games/apple_game/images/wrong/wrong_pipe.png");
+	var wrong_potato = loadImage("../assets/games/apple_game/images/wrong/wrong_potato.png");
+	var wrong_spider = loadImage("../assets/games/apple_game/images/wrong/wrong_spider.png");
 	//medals
 	var bronze = loadImage("../assets/games/apple_game/images/bronze.png");
 	var silver = loadImage("../assets/games/apple_game/images/silver.png");
@@ -141,6 +142,7 @@ function fromServer(data) {
 	//make the speed 1:1 what the guide intended. Happens here and not in setup cause we son't want it to be reinitialized on restart.
 	speedFactor = 1;
 	numOfTries = 0;
+	parallaxFactor=true;
 	console.log(data);
 	//initialize opening message
 	openingMessage = data.game_opening_statement;
@@ -246,7 +248,7 @@ function nextLevel() {//go to the next question
 	falling = false;
 	//don't race to the ground just yet
 	if (!alreadyPopped || !rightAns) {//if you were wrong or too slow...
-		questions.push(new Question(questions[pos].answers, questions[pos].question, questions[pos].time, 10/((10/questions[pos].points)+1)));
+		questions.push(new Question(questions[pos].answers, questions[pos].question, questions[pos].time, 10 / ((10 / questions[pos].points) + 1)));
 		//add a new question with the same properties, but with one less point, and only two thirds of delay time between question and answers.
 		questions.splice(pos, 1);
 		//remove unawanted info.
@@ -423,9 +425,9 @@ function repaint(ctx, buffer)//draw stuff here!
 		}
 		if (presentedScore >= 10 * cQuestions.length)
 			ctx.drawImage(gold, 440, 180);
-		else if (presentedScore >= 20/3 * cQuestions.length)
+		else if (presentedScore >= 20 / 3 * cQuestions.length)
 			ctx.drawImage(silver, 440, 180);
-		else if (presentedScore >= 10/2 * cQuestions.length)
+		else if (presentedScore >= 10 / 3 * cQuestions.length)
 			ctx.drawImage(bronze, 440, 180);
 	}
 	//if S is pressed, show Game Speed
@@ -447,23 +449,30 @@ function repaint(ctx, buffer)//draw stuff here!
 //painting related methods
 {
 	function drawInParallax(buffer, img, x, y, parallax) {//draws an image and moves it according to the camera location for a parallax effect
-		parallax = parallax * 0.9;
+		var par = parallax * 0.9;
+		if (!parallaxFactor)
+		par=0;
 		if (img.complete) {
 			if (time - prevTime > 80)
-				buffer.drawImage(img, Math.round(x + camera.x * parallax), Math.round(y + camera.y * parallax));
+				buffer.drawImage(img, Math.round(x + camera.x * par), Math.round(y + camera.y * par));
 			else
-				buffer.drawImage(img, x + camera.x * parallax, y + camera.y * parallax);
+				buffer.drawImage(img, x + camera.x * par, y + camera.y * par);
 		}
 	}
 
 	function drawInParallaxPlus(buffer, img, x, y, parallaxX, parallaxY) {//draws an image and moves it according to the mouse location for a parallax effect using separate parallax for different axis
-		parallaxX = parallaxX * 0.9;
-		parallaxY = parallaxY * 0.9;
+		var parX = parallaxX * 0.9;
+		var parY = parallaxY * 0.9;
+		if (!parallaxFactor)
+		{
+		parX=0;
+		parY=0;
+	}
 		if (img.complete) {
 			if (time - prevTime > 70)
-				buffer.drawImage(img, Math.round(x + camera.x * parallaxX), Math.round(y + camera.y * parallaxY));
+				buffer.drawImage(img, Math.round(x + camera.x * parX), Math.round(y + camera.y * parY));
 			else
-				buffer.drawImage(img, x + camera.x * parallaxX, y + camera.y * parallaxY);
+				buffer.drawImage(img, x + camera.x * parX, y + camera.y * parY);
 		}
 	}
 
@@ -555,12 +564,12 @@ function frameListener()//change stuff here!
 			}
 		}
 		for (var i = 0; i < results.length; i++) {
-			results[i].yVel += (dt / 25.0);
 			//accelerate results
-			results[i].y += results[i].yVel;
+			results[i].yVel += (dt / 25.0);
 			//move results
-			if (results[i].y > canvas.height)//if a result reaches the ground, make is vanish
-			{
+			results[i].y += results[i].yVel;
+			//if a result reaches the ground, make is vanish
+			if (results[i].y > canvas.height) {
 				if (results[i].correct) {
 					score += results[i].points;
 					scoreUp = new scoreEffect(results[i].points, 0);
@@ -588,7 +597,7 @@ function frameListener()//change stuff here!
 		camera.x = mx + (Math.cos(idleCam * (Math.PI / 180)) * 250);
 		camera.y = my + (Math.abs(Math.sin(idleCam * (Math.PI / 180))) * 100);
 	} else if (endGame && results.length == 0) {
-		animation += 2*dt/30;
+		animation += 2 * dt / 30;
 		if (animation > 360)
 			animation = 0;
 		if (presentedScore < score)
@@ -631,9 +640,10 @@ function getPosition(evt) {
 	//self explanatory
 	my = Math.round((evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height);
 }
-function mousePressed() //if the player attempts to pop an apple which is below y= 600 pixels, make it pop on mouse press, don't wait for release.
+
+function mousePressed()//if the player attempts to pop an apple which is below y= 600 pixels, make it pop on mouse press, don't wait for release.
 {
-	if (!startGame&&!endGame&&!alreadyPopped&&my>600) {//if the game is on (sigh), and no answer was clicked yet for this question, and mouseY>600
+	if (!startGame && !endGame && !alreadyPopped && my > 600) {//if the game is on (sigh), and no answer was clicked yet for this question, and mouseY>600
 		for (var i = 0; i < questions[pos].answers.length; i++) {//go through all the answers
 			var curr = questions[pos].answers[i];
 			if (!curr.popped)
@@ -650,6 +660,7 @@ function mousePressed() //if the player attempts to pop an apple which is below 
 		}
 	}
 }
+
 function mouseReleased() {
 	//if on main menu screen=
 	if (startGame) {
@@ -724,6 +735,10 @@ function keyReleased(e) {
 	if (e.keyCode == '84') {
 		// T
 		tPressed = false;
+	}
+	if (e.keyCode == '80') {
+		// P
+		parallaxFactor= !parallaxFactor;
 	}
 }
 
@@ -838,36 +853,37 @@ function keyReleased(e) {
 		this.img = getImg(this.correct);
 		function getImg(correct) {
 			if (correct) {
-				switch (Math.floor(Math.random()*40)) {
+				switch (Math.floor(Math.random()*20)) {
 				case 0:
 					return correct_flower;
 				case 1:
-					return correct_sunglasses;
-				case 2:
 					return correct_mustache;
-				case 3:
-					return correct_party;
-				case 4:
+				case 2:
 					return correct_hat;
-				case 5:
+				case 3:
 					return correct_butterfly;
-				case 6:
+				case 4:
 					return correct_happy;
-				case 7:
-					return correct_potter;
+				case 5:
+					return correct_snowman;
+				case 6:
+					return correct_rabbit;
 				default:
 					return correct_plain;
 				}
 			} else {
-				switch (Math.floor(Math.random()*20)) {
+				switch (Math.floor(Math.random()*10)) {
+
 				case 0:
-					return wrong_monocle;
-				case 1:
 					return wrong_pipe;
-				case 2:
-					return wrong_pirate;
-				case 3:
+				case 1:
 					return wrong_worm;
+				case 2:
+					return wrong_potato;
+
+				case 3:
+					return wrong_spider;
+
 				default:
 					return wrong_plain;
 				}
