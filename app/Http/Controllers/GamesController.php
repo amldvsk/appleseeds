@@ -105,9 +105,9 @@ class GamesController extends Controller {
         // create the validation rules ------------------------
         $rules = array(
             'game_name'                  => 'required|min:5',     // required
-            'game_opening_statement'     => 'required|min:5',     // required
-            'game_desc'                  => 'required|min:5',     // required
-            'game_ending_statement'      => 'required|min:5',     // required
+            'game_opening_statement'     => 'min:5',     // required
+            //'game_desc'                  => 'required|min:5',     // required
+            'game_ending_statement'      => 'min:5',     // required
             'audience'                   => 'required',     // required
             'difficulty_level'           => 'required',     // required
             'content_area'               => 'required',     // required
@@ -158,12 +158,12 @@ class GamesController extends Controller {
             $game->game_name = Input::get('game_name');
             $game->unique_id = $unique_id;
             $game->game_opening_statement = Input::get('game_opening_statement');
-            $game->game_desc = Input::get('game_desc');
+            //$game->game_desc = Input::get('game_desc');
             $game->game_ending_statement = Input::get('game_ending_statement');
             $game->audience = Input::get('audience');
             $game->difficulty_level = Input::get('difficulty_level');
             $game->content_area = Input::get('content_area');
-            $game->game_time = Input::get('game_time');
+//            $game->game_time = Input::get('game_time');
             $game->save();
 
             return redirect('/editor/create/questions/'.$game->id);

@@ -41,3 +41,16 @@ Route::get('/editor/games/edit/{key}', 'GamesController@editGame');
 Route::get('/game/{key}', 'PublicGamesController@getGame');
 
 // ==============================================================
+
+
+
+// ==============================================================
+// ONLY AFTER LOGIN ROUTES ======================================
+// ==============================================================
+
+Route::group(array('before' => 'auth'), function()
+{
+    Route::resource('users','UsersController');
+});
+
+// ==============================================================
