@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateQuestionsTable extends Migration
+class CreateUserTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,14 +12,9 @@ class CreateQuestionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('questions', function(Blueprint $table)
-        {
+        Schema::create('user_types', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('question');
-            $table->string('image');
-            $table->integer('appearance_time');
-            $table->integer('game_id')->unsigned();
-            $table->foreign('game_id')->references('id')->on('games');
+            $table->string('type');
             $table->timestamps();
         });
     }
@@ -31,6 +26,6 @@ class CreateQuestionsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('questions');
+        Schema::drop('user_types');
     }
 }
