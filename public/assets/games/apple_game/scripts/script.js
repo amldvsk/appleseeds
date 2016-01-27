@@ -339,7 +339,7 @@ function repaint(ctx, buffer)//draw stuff here!
 					ans = addLn(curr.content, buffer, 100);
 					for (var j = 0; j < ans.length; j++)//draw answers, in parts
 					{
-						showText(buffer, ans[j], curr.x + 75, curr.y + 128 + j * 28 + (-ans.length * 28 / 2));
+						showText(buffer, ans[j], curr.x + 75, curr.y + 138 + j * 28 + (-ans.length * 28 / 2));
 					}
 					buffer.font = "normal 18px Alef Hebrew";
 				} else {
@@ -522,7 +522,7 @@ function repaint(ctx, buffer)//draw stuff here!
 		var avgLengthPerLine = maxWidth / avgWidthPerLetter;
 		//average character length per line
 		var copyOfText = text.substring(0);
-		while (ctx.measureText(copyOfText).width > maxWidth) {
+		while (ctx.measureText(copyOfText).width > maxWidth&&copyOfText.indexOf(" ")!=-1) {
 			var lastSpaceInRow = copyOfText.lastIndexOf(" ", avgLengthPerLine);
 			lines.push(copyOfText.substring(0, lastSpaceInRow + 1));
 			copyOfText = copyOfText.substring(lastSpaceInRow + 1);
