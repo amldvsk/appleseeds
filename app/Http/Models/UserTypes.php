@@ -9,7 +9,7 @@ class UserTypes extends Model
     protected $table="user_types";
 
     public function user() {
-        return $this->belongsTo('App\Models\Users', 'User_id');
+        return $this->hasOne('App\Http\Models\Users');
     }
 
 }

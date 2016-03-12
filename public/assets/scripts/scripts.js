@@ -58,3 +58,14 @@ $('.add-questions').on('click', '.question_panel .close', function(e) {
     questions--;
     $(this).parents('.question_panel').remove();
 });
+
+
+
+$('.delete-game').on('click', function(e) {
+    e.preventDefault();
+    var hr = $(this).attr('href');
+
+    if(confirm("האם אתה בטוח ?")) {
+        window.location.href = hr;
+    }
+});

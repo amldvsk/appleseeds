@@ -20,55 +20,28 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <th scope="row">1</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Otto</td>
-          <td>
-            <div class="btn-group" role="group" aria-label="...">
-              <button type="button" class="btn btn-success">שכפול</button>
-              <button type="button" class="btn btn-primary">צפייה</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <th scope="row">2</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Otto</td>
-          <td>
-            <div class="btn-group" role="group" aria-label="...">
-              <button type="button" class="btn btn-danger">מחיקה</button>
-              <button type="button" class="btn btn-info">עריכה</button>
-              <button type="button" class="btn btn-primary">צפייה</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <th scope="row">3</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-          <td>Otto</td>
-          <td>
-            <div class="btn-group" role="group" aria-label="...">
-              <button type="button" class="btn btn-success">שכפול</button>
-              <button type="button" class="btn btn-primary">צפייה</button>
-            </div
-          </td>
-        </tr>
+        @foreach( $games as $game )
+            <tr>
+              <th scope="row">{{ $game->unique_id  }}</th>
+              <td>{{ $game->game_name  }}</td>
+              <td>{{ $game->content_area  }}</td>
+              <td>{{ $game->audience  }}</td>
+              <td>{{ count($game->questions)  }}</td>
+              <td>{{ $game->difficulty_level  }}</td>
+              <td>{{ $game->user->name  }}</td>
+              <td>{{ $game->created_at  }}</td>
+              <td>
+                <div class="btn-group" role="group" aria-label="...">
+                  @if( $game->user->id == Auth::user()->id )
+                    <a href="{{ URL('/editor/delete', $game->unique_id) }}" class="delete-game btn btn-danger">מחיקה</a>
+                    <a href="{{ URL('/editor/edit', $game->unique_id) }}" class="btn btn-info">עריכה</a>
+                  @endif
+                  <a href="{{ URL('/editor/copy', $game->unique_id) }}" class="btn btn-success">שכפול</a>
+                  <a href="{{ URL('/game', $game->unique_id) }}" target="_blank" class="btn btn-primary">צפייה</a>
+                </div>
+              </td>
+            </tr>
+        @endforeach
       </tbody>
     </table>
 

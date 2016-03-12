@@ -12,4 +12,8 @@ class Games extends Model
     public function questions() {
         return $this->hasMany('App\Http\Models\Questions', 'game_id')->with('answers');
     }
+
+    public function user() {
+        return $this->belongsTo('App\Http\Models\User', 'user_id');
+    }
 }

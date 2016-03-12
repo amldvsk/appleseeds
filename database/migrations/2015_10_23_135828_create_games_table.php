@@ -25,6 +25,8 @@ class CreateGamesTable extends Migration
             $table->integer('content_area');
             $table->integer('active')->default(0);
 //            $table->integer('game_time')->default(0);
+            $table->integer('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }

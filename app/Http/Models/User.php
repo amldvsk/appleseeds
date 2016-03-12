@@ -37,8 +37,8 @@ class User extends Model implements AuthenticatableContract,
      */
     protected $hidden = ['password', 'remember_token'];
 
-    public function type() {
-        return $this->hasOne('App\Models\UserTypes', 'user_id');
+    public function userType() {
+        return $this->belongsTo('App\Http\Models\UserTypes', 'type_id');
     }
 
 }
