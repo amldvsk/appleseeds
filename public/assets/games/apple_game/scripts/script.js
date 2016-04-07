@@ -148,7 +148,6 @@ function fromServer(data) {
 	openingMessage = data.game_opening_statement;
 	//initialize closing message
 	closingMessage = data.game_ending_statement;
-	//add questions here, oh mighty questioneer!
 	cQuestions = [];
 	//new Question (array of answers[new Answer(Answer, is this answer correct?)],the question itself, time for question, 10) this is the correct order! but if you look at the questions added in the lines below, the order of variables can probably seem different. This is because most IDEs don't know what to do with Hebrew.
 	for (var i = 0; i < data.questions.length; i++) {
@@ -158,11 +157,28 @@ function fromServer(data) {
 			var ans = new Answer(data.questions[i].answers[j].answer, (data.questions[i].answers[j].right_answer == '1' ? true : false));
 			buildAns.push(ans);
 		}
-		cQuestions.push(new Question(buildAns, data.questions[i].question, 4, 10));
+		cQuestions.push(new Question(buildAns, data.questions[i].question, getDifficulty(data.difficulty_level), 10));
 	}
 	setup();
 }
-
+function getDifficulty (val)
+{
+	switch (val)
+	{
+		case 1:
+		return 3;
+		case 2:
+		return 6;
+		case 3:
+		return 10;
+		case 4:
+		return 15;
+		case 5:
+		return 20;
+		default:
+		return 10;
+	}
+}
 function setup() {//setup or restart
 	//load stuff
 	//check browser. if it's chrome or firefox, the var browser will be bigger than -1. other wise it won't be.
@@ -402,33 +418,27 @@ function repaint(ctx, buffer)//draw stuff here!
 		ctx.textAlign = "center";
 		ctx.fillStyle = "rgb(0,0,0)";
 		ctx.font = "normal 60px Alef Hebrew";
-		message = addLn(closingMessage, buffer, 1000);
-		//separate text to different lines for more efficient printing.
-		for (var j = 0; j < message.length; j++)//draw answers, in parts
-		{
-			showText(ctx, message[j], 600, 150 + j * 60);
-		}
-		showText(ctx, Math.floor(presentedScore), 600, 75);
+		showText(ctx, Math.floor(presentedScore), screenWidth / 2, 100);
 		if (presentedScore >= 5 * cQuestions.length && presentedScore == score) {
 			//back light, dim
-			ctx.translate(585, 320);
+			ctx.translate(605, 320);
 			ctx.rotate(-animation * Math.PI / 180);
 			ctx.drawImage(light_2, -200, -200);
 			ctx.rotate(animation * Math.PI / 180);
-			ctx.translate(-585, -320);
+			ctx.translate(-605, -320);
 			//front light, bright
-			ctx.translate(585, 320);
+			ctx.translate(605, 320);
 			ctx.rotate(animation * Math.PI / 180);
 			ctx.drawImage(light_1, -185, -175);
 			ctx.rotate(-animation * Math.PI / 180);
-			ctx.translate(-585, -320);
+			ctx.translate(-605, -320);
 		}
 		if (presentedScore >= 10 * cQuestions.length)
-			ctx.drawImage(gold, 440, 180);
+			ctx.drawImage(gold, 460, 180);
 		else if (presentedScore >= 20 / 3 * cQuestions.length)
-			ctx.drawImage(silver, 440, 180);
+			ctx.drawImage(silver, 460, 180);
 		else if (presentedScore >= 10 / 3 * cQuestions.length)
-			ctx.drawImage(bronze, 440, 180);
+			ctx.drawImage(bronze, 460, 180);
 	}
 	//if S is pressed, show Game Speed
 	if (sPressed) {
@@ -662,12 +672,23 @@ function mousePressed()//if the player attempts to pop an apple which is below y
 }
 
 function mouseReleased() {
+	if (canvas.requestFullscreen) {
+		canvas.requestFullscreen();
+	} else if (canvas.msRequestFullscreen) {
+		canvas.msRequestFullscreen();
+	} else if (canvas.mozRequestFullScreen) {
+		canvas.mozRequestFullScreen();
+	} else if (canvas.webkitRequestFullscreen) {
+		canvas.webkitRequestFullscreen();
+	}
+
 	//if on main menu screen=
 	if (startGame) {
 		if (!display_tutorial) {
-			if (mx > 831 && mx < 1050 && my > 437 & my < 633)
+			if (mx > 660 && mx < 870 && my > 310 & my < 475) {
 				start();
-			if (mx > 210 && mx < 350 && my > 440 & my < 645)
+			}
+			if (mx > 390 && mx < 600 && my > 305 & my < 470)
 				display_tutorial = true;
 		} else {
 			if (mx > 450 && mx < 750 && my + tutorial_pos > 1525 && my + tutorial_pos < 1580) {
@@ -676,7 +697,7 @@ function mouseReleased() {
 			}
 		}
 	} else if (endGame && results.length == 0) {
-		if (mx > 500 && mx < 700 && my > 500 & my < 680)
+		if (mx > 550 && mx < 700 && my > 500 & my < 620)
 			setup();
 	}
 	//if ingame
@@ -696,7 +717,6 @@ function mouseReleased() {
 				}
 		}
 	}
-
 }
 
 function keyPressed(e) {
@@ -721,6 +741,10 @@ function keyPressed(e) {
 		if (sPressed) {
 			speedFactor = Math.min(2, speedFactor + 0.25);
 		}
+	}
+	if (e.keyCode == '27') {
+		// esc
+		
 	}
 }
 
