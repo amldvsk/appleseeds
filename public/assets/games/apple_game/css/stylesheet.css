@@ -11,6 +11,7 @@ canvas {
 	margin: auto;
 	height:100%;
 	width:(height*1200/705)px;
+	cursor: none;
 }
 body{
   font-family: "Alef Hebrew",

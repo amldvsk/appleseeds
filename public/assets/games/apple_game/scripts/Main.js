@@ -42,8 +42,6 @@
 	//this variable goes up by 1 time a frame is being processed (not painted!). use % to make animations have a lower framerate.
 	var idleCam = 0;
 	//this controls the idle camera movement - a sine wave
-	var fireflyMovement = 0;
-	//this controls the movement of the fireflies.
 	var browser;
 	//contains a number between 0 to current chrome version if the app was launched through chrome, contains -1 in any other case.
 	var fogPos;
@@ -134,22 +132,22 @@
 	//light behind medals
 	var light_1 = loadImage("../assets/games/apple_game/images/light_1.png");
 	var light_2 = loadImage("../assets/games/apple_game/images/light_2.png");
+	//cursor
+	var cursor = loadImage("../assets/games/apple_game/images/cursor.png");
 	var propeller = [];
-	var firefly_frames = [];
 }
 //this function is called on load. It should take as input an object containing all relevant json data.
 function fromServer(data) {
 	//make the speed 1:1 what the guide intended. Happens here and not in setup cause we son't want it to be reinitialized on restart.
 	speedFactor = 1;
 	numOfTries = 0;
-	parallaxFactor=true;
-	console.log(data);
+	parallaxFactor = true;
+	//console.log(data);
 	//initialize opening message
 	openingMessage = data.game_opening_statement;
 	//initialize closing message
 	closingMessage = data.game_ending_statement;
 	cQuestions = [];
-	//new Question (array of answers[new Answer(Answer, is this answer correct?)],the question itself, time for question, 10) this is the correct order! but if you look at the questions added in the lines below, the order of variables can probably seem different. This is because most IDEs don't know what to do with Hebrew.
 	for (var i = 0; i < data.questions.length; i++) {
 		//create Question objects;
 		var buildAns = [];
@@ -161,24 +159,24 @@ function fromServer(data) {
 	}
 	setup();
 }
-function getDifficulty (val)
-{
-	switch (val)
-	{
-		case 1:
+
+function getDifficulty(val) {
+	switch (val) {
+	case 1:
 		return 3;
-		case 2:
+	case 2:
 		return 6;
-		case 3:
+	case 3:
 		return 10;
-		case 4:
+	case 4:
 		return 15;
-		case 5:
+	case 5:
 		return 20;
-		default:
+	default:
 		return 10;
 	}
 }
+
 function setup() {//setup or restart
 	//load stuff
 	//check browser. if it's chrome or firefox, the var browser will be bigger than -1. other wise it won't be.
@@ -189,6 +187,7 @@ function setup() {//setup or restart
 	canvas.addEventListener("mousemove", getPosition, false);
 	canvas.addEventListener("mousedown", mousePressed, false);
 	canvas.addEventListener("mouseup", mouseReleased, false);
+	canvas.addEventListener("dblclick", dblClick, false);
 	//setup key listener
 	document.onkeydown = keyPressed;
 	document.onkeyup = keyReleased;
@@ -217,7 +216,7 @@ function setup() {//setup or restart
 	results = [];
 	//add questions to questions arrays
 	for (var i = 0; i < cQuestions.length; i++) {
-		questions.push(new Question(cQuestions[i].answers, cQuestions[i].question, cQuestions[i].time, cQuestions[i].points));
+		questions.push(new Question(cQuestions[i].getAnswers(), cQuestions[i].getContent(), cQuestions[i].getTime(), cQuestions[i].getScore()));
 	}
 	//initiate animation variable to 0;
 	animation = 0;
@@ -230,7 +229,7 @@ function setup() {//setup or restart
 	//initiate score to 0
 	score = 0;
 	//initiate score up effect
-	scoreUp = new scoreEffect(0, 255);
+	scoreUp = undefined;
 	//initiate presented score to 0 so that counting to the score will start from 0
 	presentedScore = 0;
 	falling = false;
@@ -244,10 +243,10 @@ function setup() {//setup or restart
 
 function addFireflies() {
 	for (var i = 0; i < 4; i++) {
-		firefly_frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_" + (i + 1) + ".png"));
+		Firefly.frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_" + (i + 1) + ".png"));
 	}
-	firefly_frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_3.png"));
-	firefly_frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_2.png"));
+	Firefly.frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_3.png"));
+	Firefly.frames.push(loadImage("../assets/games/apple_game/images/firefly/frame_2.png"));
 	fireflies = [];
 	for (var i = 0; i < 6; i++) {
 		fireflies.push(new Firefly(700 + Math.random() * 400, 200 + Math.random() * 300, 60 * i));
@@ -260,16 +259,15 @@ function start() {
 	startFalling();
 }
 
-function nextLevel() {//go to the next question
+function nextLevel() {
+	//go to the next question
 	falling = false;
-	//don't race to the ground just yet
-	if (!alreadyPopped || !rightAns) {//if you were wrong or too slow...
-		questions.push(new Question(questions[pos].answers, questions[pos].question, questions[pos].time, 10 / ((10 / questions[pos].points) + 1)));
+	//if you were wrong or too slow...
+	if (!alreadyPopped || !rightAns) {
+		questions.push(new Question(questions[pos].getAnswers(), questions[pos].getContent(), questions[pos].getTime(), 10 / ((10 / questions[pos].getScore()) + 1)));
 		//add a new question with the same properties, but with one less point, and only two thirds of delay time between question and answers.
 		questions.splice(pos, 1);
-		//remove unawanted info.
 		pos--;
-		//offset position because you removed some info from the array
 	}
 	//if not all questions were answered yet...
 	if (pos < questions.length - 1) {
@@ -279,15 +277,9 @@ function nextLevel() {//go to the next question
 		pos++;
 		//next question please
 		startFalling();
-		//ready, set...
-	}
-	//have the question pointer grow by one.
-	else {
+	} else {
 		endGame = true;
 		numOfTries++;
-		//if the pointer has reached the end of the questions list, please print a friendly message.
-		console.log("ok. that will be all. have a great day and stuff.");
-		//very friendly.
 	}
 }
 
@@ -295,7 +287,7 @@ function nextLevel() {//go to the next question
 window.requestAnimFrame = (function() {//The magic word is requestAnimFrame(please);
 	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
 })();
-(function animloop() {//go home, watch anime, dream of a world with really big swords, wake up, feel disappointed, try jumping off the roof, fail, go home.
+(function animloop() {
 	requestAnimFrame(animloop);
 	if (canvas != null) {
 		repaint(ctx, buffer);
@@ -308,61 +300,61 @@ function repaint(ctx, buffer)//draw stuff here!
 	prevTime = time;
 	time = new Date().getTime();
 	//check time inorder to speed up physics according to framerate
-	ctx.clearRect(0, 0, screenWidth, screenHeight);
-	buffer.clearRect(0, 0, screenWidth, screenHeight);
 	//if you want to paint, you better at least have some context!
+	if (Math.random < 0.01)
+		ctx.fillRect(0, 0, screenWidth, screenHeight);
 	if (!startGame && (!endGame || results.length != 0)) {
 		//draw background
-		drawInParallax(buffer, sky, -50, -50, 0.02);
+		drawInParallax(ctx, sky, -50, -50, 0.02);
 		//draw fog1
-		drawInParallax(buffer, fog, fogPos, -50, 0.01);
+		drawInParallax(ctx, fog, fogPos, -50, 0.01);
 		//draw fog2
-		drawInParallax(buffer, fog, fogPos - 1366, -50, 0.01);
+		drawInParallax(ctx, fog, fogPos - 1366, -50, 0.01);
 		//draw tree and ground
-		drawInParallax(buffer, tree, -50, -40, -0.02);
+		drawInParallax(ctx, tree, -50, -40, -0.02);
 		//draw front layer of tree
-		drawInParallax(buffer, treefront, 400, -40, -0.023);
+		drawInParallax(ctx, treefront, 400, -40, -0.023);
 		//draw treetop
-		drawInParallax(buffer, treetop, -50, -40, -0.03);
+		drawInParallax(ctx, treetop, -50, -40, -0.03);
 		//draw question
-		buffer.font = "normal 36px Alef Hebrew";
+		ctx.font = "normal 36px Alef Hebrew";
 		var question = [];
 		//This is an arrays that includes each line of the question
-		question = addLn(questions[pos].question, buffer, screenWidth);
+		question = addLn(questions[pos].getContent(), ctx, screenWidth);
 		//One string comes in, chopped up to little pieces, and comes out neatly packaged. Learned this trick from the meat industry.
 		for (var i = 0; i < question.length; i++)//draw questions, in parts
 		{
-			drawStrokedText(buffer, question[i], 600, 50 + (i * 36));
+			drawStrokedText(ctx, question[i], 600, 50 + (i * 36));
 		}
 		//draw fireflies
 		for (var i = 0; i < fireflies.length; i++) {
-			drawInParallax(buffer, firefly_frames[Math.floor(((fireflies[i].pos + fireflyMovement) / 3) % 6)], fireflies[i].x, fireflies[i].y, -0.04);
+			drawInParallax(ctx, Firefly.frames[Math.floor(((fireflies[i].getPos() + Firefly.movement) / 3) % 6)], fireflies[i].getX(), fireflies[i].getY(), -0.04);
 		}
 		//draw apples/answers
 		//set font color to black
-		buffer.fillStyle = "rgb(0,0,0)";
-		buffer.font = "normal 18px Alef Hebrew";
-		buffer.textAlign = "center";
-		for (var i = 0; i < questions[pos].answers.length; i++) {
-			var curr = questions[pos].answers[i];
-			if (!curr.popped) {
-				drawInParallax(buffer, curr.img, curr.x, curr.y, 0);
-				drawInParallax(buffer, propeller[Math.floor((curr.animFrame * Math.max(1, Math.min(questions[pos].time / 10, 2))) % propeller.length)], curr.x - 70, curr.y - 35, 0);
+		ctx.fillStyle = "rgb(0,0,0)";
+		ctx.font = "normal 18px Alef Hebrew";
+		ctx.textAlign = "center";
+		for (var i = 0; i < questions[pos].getAnswers().length; i++) {
+			var curr = questions[pos].getAnswers()[i];
+			if (!curr.isPopped()) {
+				drawInParallax(ctx, curr.getImg(), curr.getX(), curr.getY(), 0);
+				drawInParallax(ctx, propeller[Math.floor((curr.getFrame() * Math.max(1, Math.min(questions[pos].getTime() / 10, 2))) % propeller.length)], curr.getX() - 70, curr.getY() - 35, 0);
 				var ans = [];
-				ans = addLn(curr.content, buffer, 100);
+				ans = addLn(curr.getContent(), ctx, 100);
 				if (ans.length <= 2) {
-					buffer.font = "normal 28px Alef Hebrew";
-					ans = addLn(curr.content, buffer, 100);
+					ctx.font = "normal 28px Alef Hebrew";
+					ans = addLn(curr.getContent(), ctx, 100);
 					for (var j = 0; j < ans.length; j++)//draw answers, in parts
 					{
-						showText(buffer, ans[j], curr.x + 75, curr.y + 138 + j * 28 + (-ans.length * 28 / 2));
+						showText(ctx, ans[j], curr.getX() + 75, curr.getY() + 138 + j * 28 + (-ans.length * 28 / 2));
 					}
-					buffer.font = "normal 18px Alef Hebrew";
+					ctx.font = "normal 18px Alef Hebrew";
 				} else {
 					//separate text to different lines for more efficient printing.
 					for (var j = 0; j < ans.length; j++)//draw answers, in parts
 					{
-						showText(buffer, ans[j], curr.x + 75, curr.y + 128 + j * 18 + (-ans.length * 18 / 2));
+						showText(ctx, ans[j], curr.getX() + 75, curr.getY() + 128 + j * 18 + (-ans.length * 18 / 2));
 					}
 				}
 			}
@@ -370,31 +362,30 @@ function repaint(ctx, buffer)//draw stuff here!
 		//draw results
 		for (var i = 0; i < results.length; i++) {
 			var curr = results[i];
-			drawInParallax(buffer, curr.img, curr.x, curr.y, 0);
+			drawInParallax(ctx, curr.getImage(), curr.getX(), curr.getY(), 0);
 		}
 		//draw grass
-		drawInParallaxPlus(buffer, grass1, -100, 500, -0.07, -0.05);
-		//... aim... fire!
-		drawInParallaxPlus(buffer, grass2, -100, 500, -0.09, -0.07);
+		drawInParallaxPlus(ctx, grass1, -100, 500, -0.07, -0.05);
+		drawInParallaxPlus(ctx, grass2, -100, 500, -0.09, -0.07);
 		//draw flares
-		drawInParallax(buffer, flares_1, -50, -50, -0.05);
-		drawInParallax(buffer, flares_2, -50, -50, -0.07);
-		drawInParallax(buffer, flares_3, -50, -50, -0.09);
+		drawInParallax(ctx, flares_1, -50, -50, -0.05);
+		drawInParallax(ctx, flares_2, -50, -50, -0.07);
+		drawInParallax(ctx, flares_3, -50, -50, -0.09);
 		//draw score
-		buffer.font = "normal 48px Alef Hebrew";
-		drawStrokedText(buffer, score, 1125, 650);
+		ctx.font = "normal 48px Alef Hebrew";
+		drawStrokedText(ctx, score, 1125, 650);
 		//draw score up effect
-		if (scoreUp.getOpacity() > 0) {
-
-			if (scoreUp.score == 10)
-				buffer.fillStyle = "rgba(50,255,0," + scoreUp.getOpacity() + ")";
-			else if (scoreUp.score < 4)
-				buffer.fillStyle = "rgba(255,0,0," + scoreUp.getOpacity() + ")";
-			else
-				buffer.fillStyle = "rgba(0,0,0," + scoreUp.getOpacity() + ")";
-			showText(buffer, "+" + scoreUp.score, 1125, scoreUp.getY());
+		if (scoreUp != undefined) {
+			if (scoreUp.getOpacity() > 0) {
+				if (scoreUp.getScore() == 10)
+					ctx.fillStyle = "rgba(50,255,0," + scoreUp.getOpacity() + ")";
+				else if (scoreUp.getScore() < 4)
+					ctx.fillStyle = "rgba(255,0,0," + scoreUp.getOpacity() + ")";
+				else
+					ctx.fillStyle = "rgba(0,0,0," + scoreUp.getOpacity() + ")";
+				showText(ctx, "+" + scoreUp.getScore(), 1125, scoreUp.getY());
+			}
 		}
-		ctx.drawImage(bufferCanvas, 0, 0);
 		//ctx.fillText(Math.floor(1000 / (time - (prevTime || time))), 200, 200);
 	} else if (startGame) {
 		if (!display_tutorial) {
@@ -402,7 +393,7 @@ function repaint(ctx, buffer)//draw stuff here!
 			ctx.textAlign = "center";
 			ctx.fillStyle = "rgb(0,0,0)";
 			ctx.font = "normal 60px Alef Hebrew";
-			message = addLn(openingMessage, buffer, 1000);
+			message = addLn(openingMessage, ctx, 1000);
 			//separate text to different lines for more efficient printing.
 			for (var j = 0; j < message.length; j++)//draw answers, in parts
 			{
@@ -452,32 +443,34 @@ function repaint(ctx, buffer)//draw stuff here!
 		ctx.font = "normal 60px Alef Hebrew";
 		ctx.fillText(numOfTries, 50, 50);
 	}
-	//listen to the frame (actually, andle physics and do stuff)
+	ctx.drawImage(cursor, mx, my);
+	//listen to the frame (actually, handle physics and do stuff)
 	frameListener();
 }
 
 //painting related methods
 {
-	function drawInParallax(buffer, img, x, y, parallax) {//draws an image and moves it according to the camera location for a parallax effect
+	//draws an image and moves it according to the camera location for a parallax effect
+	function drawInParallax(buffer, img, x, y, parallax) {
 		var par = parallax * 0.9;
 		if (!parallaxFactor)
-		par=0;
+			par = 0;
 		if (img.complete) {
 			if (time - prevTime > 80)
-				buffer.drawImage(img, Math.round(x + camera.x * par), Math.round(y + camera.y * par));
+				buffer.drawImage(img, 0, 0, img.width, img.height, Math.round(x + camera.x * par), Math.round(y + camera.y * par), img.width, img.height);
 			else
-				buffer.drawImage(img, x + camera.x * par, y + camera.y * par);
+				buffer.drawImage(img, 0, 0, img.width, img.height, x + camera.x * par, y + camera.y * par, img.width, img.height);
 		}
 	}
 
-	function drawInParallaxPlus(buffer, img, x, y, parallaxX, parallaxY) {//draws an image and moves it according to the mouse location for a parallax effect using separate parallax for different axis
+	//draws an image and moves it according to the mouse location for a parallax effect using separate parallax for different axis
+	function drawInParallaxPlus(buffer, img, x, y, parallaxX, parallaxY) {
 		var parX = parallaxX * 0.9;
 		var parY = parallaxY * 0.9;
-		if (!parallaxFactor)
-		{
-		parX=0;
-		parY=0;
-	}
+		if (!parallaxFactor) {
+			parX = 0;
+			parY = 0;
+		}
 		if (img.complete) {
 			if (time - prevTime > 70)
 				buffer.drawImage(img, Math.round(x + camera.x * parX), Math.round(y + camera.y * parY));
@@ -486,53 +479,47 @@ function repaint(ctx, buffer)//draw stuff here!
 		}
 	}
 
-	function showText(ctx, text, x, y)//I use a manual function to print since I have to offset the x value in case the user uses IE.
-	{
+	//I use a manual function to print since I have to offset the x value in case the user uses IE.
+	function showText(ctx, text, x, y) {
 		if (browser != -1)
 			ctx.fillText(text, Math.round(x), Math.round(y));
 		else
 			ctx.fillText(text, Math.round(x + ctx.measureText(text).width), Math.round(y));
 	}
 
-	function strokeText(ctx, text, x, y)//I use a manual function to stroke since I have to offset the x value in case the user uses IE.
-	{
+	//I use a manual function to stroke since I have to offset the x value in case the user uses IE.
+	function strokeText(ctx, text, x, y) {
 		if (browser != -1)
 			ctx.strokeText(text, Math.round(x), Math.round(y));
 		else
 			ctx.strokeText(text, Math.round(x + ctx.measureText(text).width), Math.round(y));
 	}
 
-	function drawStrokedText(context, text, x, y)//draws white text with a 1px black border
-	{
+	//draws white text with a 1px black border
+	function drawStrokedText(context, text, x, y) {
 		context.fillStyle = "rgb(0,0,0)";
 		if (time - prevTime > 110) {
 			strokeText(context, text, x, y);
 		} else {
 			showText(context, text, x - 1, y - 1);
-			//you know, it really is the context that fills the text with meaning. this was much more funny when I was actually using the built in fillText function...
 			showText(context, text, x + 1, y - 1);
-			//like, for e.g., how this these lines of code were first drafted on a desert island with the blood of crows, smeared across the walls of a crystal cave.
 			showText(context, text, x - 1, y);
-			//really gives you perspective.
 			showText(context, text, x + 1, y);
-			//like, right now, I'm looking at the same text from one pixel to the left, and it's like a whole different mood. Some G.R.R. Martin vibes there.
 			showText(context, text, x - 1, y + 1);
 			showText(context, text, x + 1, y + 1);
 		}
 		context.fillStyle = "rgb(255,220,150)";
-		//the color of alien eye juice.
 		showText(context, text, x, y);
-		//call an ambulance! this text is having a stroke!
 	};
 	function addLn(text, ctx, maxWidth) {
-		//this methods trims a text so that it fits a box with width [maxWidth], returning an arrawy with different lines.
+		//this methods trims a text so that it fits a box with width [maxWidth], returning an array with different lines.
 		var lines = [];
 		var length = ctx.measureText(text).width;
 		var avgWidthPerLetter = (length / text.length);
 		var avgLengthPerLine = maxWidth / avgWidthPerLetter;
 		//average character length per line
 		var copyOfText = text.substring(0);
-		while (ctx.measureText(copyOfText).width > maxWidth&&copyOfText.indexOf(" ")!=-1) {
+		while (ctx.measureText(copyOfText).width > maxWidth && copyOfText.indexOf(" ") != -1) {
 			var lastSpaceInRow = copyOfText.lastIndexOf(" ", avgLengthPerLine);
 			lines.push(copyOfText.substring(0, lastSpaceInRow + 1));
 			copyOfText = copyOfText.substring(lastSpaceInRow + 1);
@@ -552,20 +539,21 @@ function frameListener()//change stuff here!
 		animation += dt / (1000 / 30);
 		if (animation >= 1)
 			animation = 0;
-		if (scoreUp.getOpacity() > 0)
-			scoreUp.nextFrame();
+		if (scoreUp != undefined)
+			if (scoreUp.getOpacity() > 0)
+				scoreUp.nextFrame();
 		if (falling)//only if the apples are already falling...
 		{
-			for (var i = 0; i < questions[pos].answers.length; i++) {//move answers
-				questions[pos].answers[i].y += questions[pos].answers[i].yVel * dt * speedFactor;
-				if (alreadyPopped)
-					questions[pos].answers[i].yVel += 0.03;
+			for (var i = 0; i < questions[pos].getAnswers().length; i++) {//move answers
+				questions[pos].getAnswers()[i].move(dt * speedFactor);
 				//accelerate answers if an answer was popped.
-				else if (animation == 0)
-					questions[pos].answers[i].animate();
+				if (alreadyPopped)
+					questions[pos].getAnswers()[i].setYVel(questions[pos].getAnswers()[i].getYVel() + 0.03 * dt / (1000 / 30));
 				//animate propeller.
+				else if (animation == 0)
+					questions[pos].getAnswers()[i].animate();
 
-				if (questions[pos].answers[i].y < (canvas.height + 30) && !questions[pos].answers[i].popped)
+				if (questions[pos].getAnswers()[i].getY() < (canvas.height + 30) && !questions[pos].getAnswers()[i].isPopped())
 					//if a non-popped answer is still on screen, don't proceed to next question
 					outOfScreen = false;
 			}
@@ -575,14 +563,14 @@ function frameListener()//change stuff here!
 		}
 		for (var i = 0; i < results.length; i++) {
 			//accelerate results
-			results[i].yVel += (dt / 25.0);
+			results[i].accelerateY(dt / 25.0);
 			//move results
-			results[i].y += results[i].yVel;
+			results[i].move();
 			//if a result reaches the ground, make is vanish
-			if (results[i].y > canvas.height) {
-				if (results[i].correct) {
-					score += results[i].points;
-					scoreUp = new scoreEffect(results[i].points, 0);
+			if (results[i].getY() > canvas.height) {
+				if (results[i].isCorrect()) {
+					score += results[i].getScore();
+					scoreUp = new ScoreEffect(results[i].getScore());
 				}
 				results.splice(i, 1);
 			}
@@ -593,9 +581,9 @@ function frameListener()//change stuff here!
 		if (fogPos >= 1366)
 			fogPos = 0;
 		//move fireflies
-		fireflyMovement += 0.5 * dt / (1000 / 30);
-		if (fireflyMovement > 360)
-			fireflyMovement = 0;
+		Firefly.movement += 0.5 * dt / (1000 / 30);
+		if (Firefly.movement > 360)
+			Firefly.movement = 0;
 		for (var i = 0; i < fireflies.length; i++) {
 			fireflies[i].move();
 		}
@@ -637,6 +625,12 @@ function startFalling()//call this method when switching between questions, in n
 	}, questions[pos].delay);
 }
 
+function pop(ans) {
+	results.push(new Result(ans.pop(), ans.getX(), ans.getY(), questions[pos].getScore()));
+	alreadyPopped = true;
+	rightAns = ans.isCorrect();
+}
+
 function loadImage(src) {
 	var temp = new Image;
 	temp.src = src;
@@ -653,17 +647,17 @@ function getPosition(evt) {
 
 function mousePressed()//if the player attempts to pop an apple which is below y= 600 pixels, make it pop on mouse press, don't wait for release.
 {
-	if (!startGame && !endGame && !alreadyPopped && my > 600) {//if the game is on (sigh), and no answer was clicked yet for this question, and mouseY>600
-		for (var i = 0; i < questions[pos].answers.length; i++) {//go through all the answers
-			var curr = questions[pos].answers[i];
-			if (!curr.popped)
-				if ((mx > curr.x) && (mx < (curr.x + 150)) && (my > curr.y) && (my < (curr.y + 180))) {//and if the click occurred inside the hitbox of one of the apples
-					curr.pop();
-					//then pop the hell out of it!!!
-					for (var j = 0; j < questions[pos].answers.length; j++) {
-						if (!questions[pos].answers[j].popped)
-							questions[pos].answers[j].yVel = 0.5;
-						//also, make the other apples fall faster, since their propellers just lost the will to spin.
+	if (!startGame && !endGame && !alreadyPopped && my > 600) {
+		for (var i = 0; i < questions[pos].getAnswers().length; i++) {//go through all the answers
+			var curr = questions[pos].getAnswers()[i];
+			if (!curr.isPopped())
+				if ((mx > curr.getX()) && (mx < (curr.getX() + 150)) && (my > curr.getY()) && (my < (curr.getY() + 180))) {
+					//pop an answer if it's hitbox was clicked
+					pop(curr);
+					//and make the other answers faster
+					for (var j = 0; j < questions[pos].getAnswers().length; j++) {
+						if (!questions[pos].getAnswers()[j].isPopped())
+							questions[pos].getAnswers()[j].setYVel(0.5);
 					}
 					break;
 				}
@@ -672,15 +666,8 @@ function mousePressed()//if the player attempts to pop an apple which is below y
 }
 
 function mouseReleased() {
-	if (canvas.requestFullscreen) {
-		canvas.requestFullscreen();
-	} else if (canvas.msRequestFullscreen) {
-		canvas.msRequestFullscreen();
-	} else if (canvas.mozRequestFullScreen) {
-		canvas.mozRequestFullScreen();
-	} else if (canvas.webkitRequestFullscreen) {
-		canvas.webkitRequestFullscreen();
-	}
+	if (!Fullscreen.wasCancelled)
+		Fullscreen.requestIn();
 
 	//if on main menu screen=
 	if (startGame) {
@@ -697,28 +684,31 @@ function mouseReleased() {
 			}
 		}
 	} else if (endGame && results.length == 0) {
-		if (mx > 550 && mx < 700 && my > 500 & my < 620)
+		if (mx > 550 && mx < 700 && my > 500 & my < 620) {
 			setup();
+			start();
+		}
 	}
 	//if ingame
 	else if (!alreadyPopped) {//if no answer was clicked yet
-		for (var i = 0; i < questions[pos].answers.length; i++) {//go through all the answers
-			var curr = questions[pos].answers[i];
+		for (var i = 0; i < questions[pos].getAnswers().length; i++) {
+			var curr = questions[pos].getAnswers()[i];
 			if (!curr.popped)
-				if ((mx > curr.x) && (mx < (curr.x + 150)) && (my > curr.y) && (my < (curr.y + 180))) {//and if the click occurred inside the hitbox of one of the apples
-					curr.pop();
-					//then pop the hell out of it!!!
-					for (var j = 0; j < questions[pos].answers.length; j++) {
-						if (!questions[pos].answers[j].popped)
-							questions[pos].answers[j].yVel = 0.5;
-						//also, make the other apples fall faster, since their propellers just lost the will to spin.
+				if ((mx > curr.getX()) && (mx < (curr.getX() + 150)) && (my > curr.getY()) && (my < (curr.getY() + 180))) {
+					pop(curr);
+					for (var j = 0; j < questions[pos].getAnswers().length; j++) {
+						if (!questions[pos].getAnswers()[j].isPopped())
+							questions[pos].getAnswers()[j].setYVel(0.5);
 					}
 					break;
 				}
 		}
 	}
 }
-
+function dblClick ()
+{
+	Fullscreen.requestIn();
+}
 function keyPressed(e) {
 
 	e = e || window.event;
@@ -742,10 +732,7 @@ function keyPressed(e) {
 			speedFactor = Math.min(2, speedFactor + 0.25);
 		}
 	}
-	if (e.keyCode == '27') {
-		// esc
-		
-	}
+	
 }
 
 function keyReleased(e) {
@@ -762,185 +749,10 @@ function keyReleased(e) {
 	}
 	if (e.keyCode == '80') {
 		// P
-		parallaxFactor= !parallaxFactor;
+		parallaxFactor = !parallaxFactor;
 	}
-}
-
-//classes ahoy!
-{
-	function Answer(content, correct) {
-		this.does = correct;
-		//me if I'm wrong.
-		this.content = content;
-		//the meat of the answer. Vegan friendly meat.
-		this.animFrame = Math.floor(Math.random() * 25);
-		//this is the current frame for the propeller animation.
-		this.x = 0;
-		this.y = 0;
-		this.xVel = 0;
-		//Vel stands for velocity. duh.
-		this.yVel = 0;
-		this.img = getImg();
-		this.popped = false;
-		//was this apple popped? you can pop an apple by clicking on it!
-		function getImg() {//sets an image at random. only there is only one image to choose from. not very random...
-			var type = Math.floor(Math.random() * 1);
-			//currently only one type of apples
-			switch (type) {
-			case 0:
-				return apple;
-				break;
-			}
-		};
-		this.pop = function() {
-			this.popped = true;
-			results.push(new Result(this.does, this.x, this.y, questions[pos].points));
-			alreadyPopped = true;
-			rightAns = this.does;
-		};
-		this.animate = function() {
-			this.animFrame++;
-			if (this.animFrame >= propeller.length)
-				this.animFrame = 0;
-		};
+	if (e.keyCode == '27') {
+		// esc
+		Fullscreen.requestOut();
 	}
-
-	function Question(options, q, time, points)//a single question
-	{
-		this.time = time;
-		//the time required for the apples to each the ground. in seconds. ugh.
-		this.question = q;
-		//the question itself
-		this.points = Math.floor(points);
-		if (this.points < 1) {
-			this.points = 1;
-		}
-		var tempAns = options;
-		//this is here just for initiation purposes. mostly 42.
-		setStandardPosition();
-		//set the position of each apple.
-		function setStandardPosition() {
-			var amount = tempAns.length;
-			var rnd = [];
-			//scramble answers position
-			for (var i = 0; i < amount; i++) {
-				rnd.push(-1);
-			}
-			for (var i = 0; i < amount; i++) {
-				var does = false;
-				while (!does) {
-					var pos = Math.floor(Math.random() * amount);
-					if (rnd[pos] == -1) {
-						rnd[pos] = i;
-						does = true;
-					}
-				}
-			}
-			for (var i = 0; i < amount; i++) {
-				tempAns[rnd[i]].popped = false;
-				// no answers where popped, cause this is only the initiation stage. note that without this line, all the answers would show up for the first time, but if the same questions comes up twice cause you where wrong, the answers that are already popped won't show up.
-				tempAns[rnd[i]].y = -200 - Math.floor(Math.random() * 100);
-				tempAns[rnd[i]].x = (600 / amount) + i * (1000 / amount);
-				tempAns[rnd[i]].xVel = 0;
-				tempAns[rnd[i]].yVel = screenHeight / (time * 1000) + (Math.random() * 0.02 * 10 / time);
-				//set velocity such that the apples will reach the bottom when after [time]
-			}
-		};
-		this.answers = tempAns;
-		tempAns = [];
-		switch(this.points) {
-		case 10:
-			this.delay = this.question.length * 50;
-			break;
-		case 9:
-			this.delay = this.question.length * 30;
-			break;
-		case 8:
-			this.delay = this.question.length * 20;
-			break;
-		default:
-			this.delay = this.question.length * 10;
-
-		}
-		//the time it will take for the answers to start falling after the question is first presented. in millis.
-	}
-
-	function Result(correct, x, y, points) {
-		this.points = points;
-		this.correct = correct;
-		this.x = x;
-		// the x = x looks like a dead person's face. that's because it is. A person dies each time this game is loaded, and their face is stripped off their skull, and used for the duration of the code for multiple processes.
-		this.y = y;
-		// ahh, y = y, the tearful eyes of a child mourning their parent, whose face mysteriously vanished.
-		this.xVel = 0;
-		this.yVel = -10;
-		this.img = getImg(this.correct);
-		function getImg(correct) {
-			if (correct) {
-				switch (Math.floor(Math.random()*20)) {
-				case 0:
-					return correct_flower;
-				case 1:
-					return correct_mustache;
-				case 2:
-					return correct_hat;
-				case 3:
-					return correct_butterfly;
-				case 4:
-					return correct_happy;
-				case 5:
-					return correct_snowman;
-				case 6:
-					return correct_rabbit;
-				default:
-					return correct_plain;
-				}
-			} else {
-				switch (Math.floor(Math.random()*10)) {
-
-				case 0:
-					return wrong_pipe;
-				case 1:
-					return wrong_worm;
-				case 2:
-					return wrong_potato;
-
-				case 3:
-					return wrong_spider;
-
-				default:
-					return wrong_plain;
-				}
-
-			}
-		};
-	}
-
-	function scoreEffect(score, frame) {
-		this.score = score;
-		this.frame = frame;
-		this.nextFrame = function() {
-			this.frame++;
-		};
-		this.getOpacity = function() {
-
-			return (255.0 - this.frame * 8) / 255;
-		};
-		this.getY = function() {
-			return 625 - (this.frame * 2);
-		};
-	}
-
-	function Firefly(x, y, pos) {
-		this.initialX = x;
-		this.initialY = y;
-		this.x = x;
-		this.y = y;
-		this.pos = pos;
-		this.move = function() {
-			this.x = this.initialX + (Math.cos(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
-			this.y = this.initialY + (Math.sin(this.pos + fireflyMovement * (Math.PI / 180))) * (Math.sin(this.pos + fireflyMovement * (Math.PI / 45)) * 50);
-		};
-	}
-
 }
